@@ -14,17 +14,16 @@ This app allows users to explore trending movies, browse by genre, search for ti
 ---
 
 ## 📸 Screenshots
-./screenshot1.png
-./screenshot2.png
-./screenshot3.png
-./screenshot4.png
-./screenshot5.png
-./screenshot6.png
-./screenshot7.png
-./screenshot8.png
-./screenshot9.png
-./screenshot10.png
 
+| Login / Home | Movie Details |
+|:---:|:---:|
+| ![Screen 1](./screenshots/screenshot2.png) | ![Screen 2](./screenshots/screenshot3.png) |
+| ![Screen 3](./screenshots/screenshot4.png) | ![Screen 4](./screenshots/screenshot5.png) |
+| ![Screen 5](./screenshots/screenshot6.png) | ![Screen 6](./screenshots/screenshot7.png) |
+| ![Screen 7](./screenshots/screenshot8.png) | ![Screen 8](./screenshots/screenshot9.png) |
+| ![Screen 9](./screenshots/screenshot10.png) | ![Image](./screenshots/screenshot2.png) |
+
+> *Note: Make sure the file names in the code above match exactly the names inside your folder.*
 ---
 
 ## 🚀 Features
