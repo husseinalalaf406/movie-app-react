@@ -9,7 +9,7 @@
 This app allows users to explore trending movies, browse by genre, search for titles in real-time, and save their favorites using a global state management system.
 
 ## 🔗 Live Demo
-### [👉 Click here to view the Live Demo](ضع_رابط_Vercel_هنا)
+### [👉 Click here to view the Live Demo](https://graceful-pony-07cf2f.netlify.app/)
 
 ---
 
@@ -23,8 +23,7 @@ This app allows users to explore trending movies, browse by genre, search for ti
 | ![Screen 7](./screenshots/screenshot8.png) | ![Screen 8](./screenshots/screenshot9.png) |
 | ![Screen 9](./screenshots/screenshot10.png) | ![Image](./screenshots/screenshot2.png) |
 
-> *Note: Make sure the file names in the code above match exactly the names inside your folder.*
----
+
 
 ## 🚀 Features
 
