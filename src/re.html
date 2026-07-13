@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقرير أكاديمي: مقاطع ألفا (Alpha-Cuts)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --uni-primary: #800000;
+            --uni-secondary: #d4af37;
+            --uni-light-bg: #fffaf0;
+        }
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+            line-height: 1.8;
+        }
+        .paper-container {
+            background-color: #ffffff;
+            max-width: 950px;
+            margin: 3rem auto;
+            padding: 4rem 5rem;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            border-top: 8px solid var(--uni-primary);
+            border-radius: 8px;
+        }
+        h1, h2, h3, h4 { color: var(--uni-primary); font-weight: 700; }
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2.5rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+            font-size: 1.5rem;
+        }
+        .section-num {
+            background-color: var(--uni-primary);
+            color: white;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        .math-box {
+            background-color: var(--uni-light-bg);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-right: 4px solid var(--uni-secondary);
+            margin: 1.5rem 0;
+            font-family: serif;
+            overflow-x: auto;
+        }
+        .styled-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        .styled-table th, .styled-table td {
+            padding: 1rem;
+            border: 1px solid #cbd5e1;
+            text-align: right;
+        }
+        .styled-table th {
+            background-color: var(--uni-primary);
+            color: white;
+        }
+        .styled-table tr:nth-child(even) { background-color: #f8fafc; }
+ 
+        /* ===== FIX 1: Interactive panel uses plain CSS, not Tailwind classes ===== */
+        .interactive-panel {
+            background: linear-gradient(135deg, #1a0505 0%, var(--uni-primary) 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+        }
+        /* ===== FIX 2: Matrix cell styles defined in CSS, toggled via class ===== */
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 4rem);
+            gap: 0.75rem;
+            padding: 1rem;
+            background: rgba(0,0,0,0.3);
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .matrix-cell {
+            width: 4rem;
+            height: 4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .matrix-cell.is-one {
+            background-color: var(--uni-secondary);
+            color: white;
+            box-shadow: 0 0 15px rgba(212,175,55,0.6);
+            transform: scale(1.05);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+        .matrix-cell.is-zero {
+            background-color: rgba(0,0,0,0.4);
+            color: #6b7280;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        /* ===== FIX 3: Slider styling ===== */
+        #alpha-slider {
+            width: 100%;
+            height: 0.75rem;
+            background: #4b5563;
+            border-radius: 9999px;
+            appearance: none;
+            cursor: pointer;
+            outline: none;
+        }
+        #alpha-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            background: var(--uni-secondary);
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 0 6px rgba(212,175,55,0.8);
+        }
+        #alpha-slider::-moz-range-thumb {
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            background: var(--uni-secondary);
+            cursor: pointer;
+            border: 2px solid white;
+        }
+        /* === Static print summary table (hidden on screen) === */
+        .print-summary {
+            display: none;
+        }
+        /* === Matrix cell print overrides === */
+        @media print {
+            body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .paper-container { box-shadow: none; padding: 1cm 1.5cm; margin: 0; border-top: 6px solid var(--uni-primary) !important; border-radius: 0; }
+ 
+            /* Hide the interactive slider/controls, show static summary instead */
+            .interactive-controls { display: none !important; }
+            .print-summary { display: block !important; }
+ 
+            /* Keep the panel visible but re-skin it for print */
+            .interactive-panel {
+                background: #f9f4e8 !important;
+                color: #1a1a1a !important;
+                border: 2px solid var(--uni-primary);
+                box-shadow: none !important;
+                page-break-inside: avoid;
+            }
+            .interactive-panel h3 { color: var(--uni-primary) !important; }
+            .interactive-panel .panel-subtitle { color: #555 !important; }
+ 
+            /* Print matrix cell colours */
+            .print-matrix-cell-one {
+                background-color: var(--uni-secondary) !important;
+                color: white !important;
+                border: 1px solid #a07a10;
+            }
+            .print-matrix-cell-zero {
+                background-color: #e5e7eb !important;
+                color: #374151 !important;
+                border: 1px solid #d1d5db;
+            }
+ 
+            /* General page settings */
+            @page { margin: 1.5cm; }
+            h2, h3 { page-break-after: avoid; }
+            table, .math-box { page-break-inside: avoid; }
+            #toc { page-break-after: always; }
+        }
+ 
+        /* ===== TOC Styles ===== */
+        .toc-item {
+            display: flex;
+            align-items: baseline;
+            gap: 0.25rem;
+            padding: 0.45rem 0;
+            border-bottom: 1px dashed #e2c97a;
+            font-size: 1rem;
+            color: #334155;
+        }
+        .toc-item:last-child { border-bottom: none; }
+        .toc-item a {
+            color: var(--uni-primary);
+            text-decoration: none;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .toc-item a:hover { text-decoration: underline; color: var(--uni-secondary); }
+        .toc-dots {
+            flex: 1;
+            border-bottom: 2px dotted #c9a83a;
+            margin: 0 0.5rem;
+            position: relative;
+            top: -4px;
+        }
+        .toc-num {
+            font-weight: 700;
+            color: var(--uni-primary);
+            background: white;
+            border: 1px solid var(--uni-secondary);
+            border-radius: 4px;
+            padding: 0 0.4rem;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+<main class="paper-container">
+ 
+    <!-- Header -->
+    <header class="text-center mb-12">
+ 
+        <!-- University Identity Block -->
+        <div class="mb-8 pb-6 border-b-2" style="border-color: var(--uni-secondary);">
+            <p class="font-bold text-2xl mb-1" style="color: var(--uni-primary)">جامعة الموصل</p>
+            <p class="font-semibold text-lg text-gray-700">كلية علوم الحاسوب</p>
+            <p class="text-base text-gray-600">قسم بحوث العمليات والتقنيات الذكائية</p>
+        </div>
+ 
+        <h1 class="text-4xl md:text-5xl leading-tight mb-6">
+            تقرير أكاديمي: مقاطع ألفا (Alpha-Cuts)
+            <br>
+            <span class="text-3xl" style="color: var(--uni-secondary)">في العلاقات الضبابية (Fuzzy Relations)</span>
+        </h1>
+ 
+        <div class="inline-block px-8 py-4 rounded-lg mt-4 text-gray-800 shadow-sm" style="background-color: var(--uni-light-bg); border: 1px solid var(--uni-secondary);">
+            <p><strong>اسم الطالب:</strong> فهد فراس ناظم</p>
+            <p><strong>الكلية:</strong> كلية علوم الحاسوب</p>
+            <p><strong>القسم:</strong> قسم بحوث العمليات والتقنيات الذكائية</p>
+            <p><strong>الموضوع:</strong> المنطق الضبابي والأنظمة الذكية</p>
+        </div>
+    </header>
+ 
+    <!-- Table of Contents -->
+    <nav id="toc" style="background-color: var(--uni-light-bg); border: 1px solid var(--uni-secondary); border-radius: 10px; padding: 2rem 2.5rem; margin-bottom: 2.5rem; page-break-after: always;">
+        <h2 style="color: var(--uni-primary); font-size: 1.4rem; font-weight: 700; margin-bottom: 1.2rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--uni-secondary); text-align: center;">
+            📋 فهرس المحتويات
+        </h2>
+        <ol style="list-style: none; padding: 0; margin: 0; counter-reset: toc-counter;">
+            <li class="toc-item"><a href="#sec1">المقدمة</a><span class="toc-dots"></span><span class="toc-num">1</span></li>
+            <li class="toc-item"><a href="#sec2">المفاهيم الأساسية</a><span class="toc-dots"></span><span class="toc-num">2</span></li>
+            <li class="toc-item"><a href="#sec3">مفهوم مقاطع ألفا (Alpha-Cuts)</a><span class="toc-dots"></span><span class="toc-num">3</span></li>
+            <li class="toc-item"><a href="#sec4">مقاطع ألفا في العلاقات الضبابية</a><span class="toc-dots"></span><span class="toc-num">4</span></li>
+            <li class="toc-item"><a href="#sec5">الصياغة الرياضية وأمثلة محلولة</a><span class="toc-dots"></span><span class="toc-num">5</span></li>
+            <li class="toc-item"><a href="#sec6">التطبيقات</a><span class="toc-dots"></span><span class="toc-num">6</span></li>
+            <li class="toc-item"><a href="#sec7">المزايا والقيود</a><span class="toc-dots"></span><span class="toc-num">7</span></li>
+            <li class="toc-item"><a href="#sec8">أمثلة تطبيقية واقعية</a><span class="toc-dots"></span><span class="toc-num">8</span></li>
+            <li class="toc-item"><a href="#sec9">الخاتمة</a><span class="toc-dots"></span><span class="toc-num">9</span></li>
+            <li class="toc-item"><a href="#sec10">المراجع</a><span class="toc-dots"></span><span class="toc-num">10</span></li>
+        </ol>
+    </nav>
+ 
+    <!-- Section 1 -->
+    <section id="sec1">
+        <h2 class="section-title"><span class="section-num">1</span> المقدمة</h2>
+        <h3 class="text-xl mb-2">شرح عام لنظرية المجموعات الضبابية (Fuzzy Set Theory)</h3>
+        <p>تعد نظرية المجموعات الضبابية، التي وضع أسسها العالم <strong>لطفي زاده (Lotfi Zadeh)</strong> في عام 1965، ثورة في كيفية معالجة الحواسيب للمعلومات غير الدقيقة. على عكس المنطق الكلاسيكي (Boolean Logic) الذي يعتمد على الثنائية (0 أو 1)، تسمح المجموعات الضبابية بوجود درجات من الانتماء تقع في النطاق \([0, 1]\). هذا النموذج يحاكي الطبيعة البشرية في اتخاذ القرارات بناءً على مفاهيم نسبية مثل "طويل جداً" أو "دافئ قليلاً".</p>
+ 
+        <h3 class="text-xl mt-6 mb-2">أهمية العلاقات الضبابية في الهندسة وعلوم الحاسوب</h3>
+        <p>تنبثق أهمية العلاقات الضبابية من قدرتها على نمذجة الروابط المعقدة بين المتغيرات في الأنظمة الواقعية. في الهندسة، نادراً ما تكون المدخلات دقيقة تماماً؛ لذا تبرز العلاقات الضبابية كأداة قوية في:</p>
+        <ul class="list-disc pr-8 mt-2 space-y-2">
+            <li><strong style="color: var(--uni-primary)">التحكم الذكي:</strong> ربط قيم المستشعرات بالأوامر الميكانيكية.</li>
+            <li><strong style="color: var(--uni-primary)">تحليل البيانات:</strong> اكتشاف الأنماط المخفية بين مجموعات البيانات الضخمة.</li>
+            <li><strong style="color: var(--uni-primary)">اتخاذ القرار:</strong> موازنة المعايير المتعارضة في بيئات غير مؤكدة.</li>
+        </ul>
+    </section>
+ 
+    <!-- Section 2 -->
+    <section id="sec2">
+        <h2 class="section-title"><span class="section-num">2</span> المفاهيم الأساسية</h2>
+        <h3 class="text-xl mb-2">تعريف المجموعات الضبابية</h3>
+        <p>المجموعة الضبابية \(A\) في كون الخطاب (Universe of Discourse) \(X\) هي مجموعة من الأزواج المرتبة، تُعرف رياضياً بـ:</p>
+        <div class="math-box text-center text-lg">
+            $$A = \{ (x, \mu_A(x)) \mid x \in X \}$$
+        </div>
+        <p>حيث \(\mu_A(x)\) هي دالة الانتماء التي تربط كل عنصر \(x\) بقيمة في الفترة \([0, 1]\).</p>
+ 
+        <h3 class="text-xl mt-6 mb-2">تعريف العلاقات الضبابية</h3>
+        <p>العلاقة الضبابية \(R\) هي تعميم للمفهوم الكلاسيكي للعلاقات، حيث تعبر عن درجة الترابط بين عناصر مجموعتين \(X\) و \(Y\). يتم تمثيلها كمجموعة ضبابية في الضرب الديكارتي \(X \times Y\):</p>
+        <div class="math-box text-center text-lg">
+            $$R = \{ ((x, y), \mu_R(x, y)) \mid (x, y) \in X \times Y \}$$
+        </div>
+ 
+        <h3 class="text-xl mt-6 mb-2">دوال الانتماء (Membership Functions)</h3>
+        <p>هي القلب النابض للنظام الضبابي، وتتخذ أشكالاً هندسية مختلفة مثل (المثلثي، شبه المنحرف، أو الجرس الغاوسي) لتحديد كيفية انتقال العنصر من "عدم الانتماء" إلى "الانتماء الكامل".</p>
+    </section>
+ 
+    <!-- Section 3 -->
+    <section id="sec3">
+        <h2 class="section-title"><span class="section-num">3</span> مفهوم مقاطع ألفا (Alpha-Cuts)</h2>
+        <p>تعد مقاطع ألفا هي الجسر الرابط بين العالم الضبابي (Fuzzy) والعالم القاطع (Crisp). فهي تسمح لنا باستخراج المجموعات الفرعية التي تحقق مستوى معيناً من الثقة أو الكفاية.</p>
+ 
+        <h3 class="text-xl mt-6 mb-2">تعريف \(\alpha\)-cut</h3>
+        <p>لمجموعة ضبابية \(A\) ومستوى \(\alpha\) حيث \(\alpha \in [0, 1]\)، يُعرف مقطع ألفا \(A_\alpha\) بأنه المجموعة القاطعة التي تضم كافة العناصر التي لا تقل درجة انتمائها عن \(\alpha\):</p>
+        <div class="math-box text-center text-lg">
+            $$A_\alpha = \{ x \in X \mid \mu_A(x) \geq \alpha \}$$
+        </div>
+ 
+        <h3 class="text-xl mt-6 mb-2">الفرق بين Strong \(\alpha\)-cut و Weak \(\alpha\)-cut</h3>
+        <ul class="list-disc pr-8 space-y-2 mt-2">
+            <li><strong style="color: var(--uni-primary)">المقطع الضعيف (Weak \(\alpha\)-cut):</strong> \(A_\alpha = \{ x \in X \mid \mu_A(x) \geq \alpha \}\).</li>
+            <li><strong style="color: var(--uni-primary)">المقطع القوي (Strong \(\alpha\)-cut):</strong> \(A_\alpha^+ = \{ x \in X \mid \mu_A(x) > \alpha \}\).</li>
+        </ul>
+ 
+        <h3 class="text-xl mt-6 mb-2">التمثيل الرياضي للمفهوم</h3>
+        <p>يمكن إعادة بناء أي مجموعة ضبابية باستخدام مقاطع ألفا الخاصة بها عبر "مبدأ التفكيك" (Decomposition Principle):</p>
+        <div class="math-box text-center text-lg">
+            $$A = \bigcup_{\alpha \in [0,1]} \alpha \cdot A_\alpha$$
+        </div>
+    </section>
+ 
+    <!-- Section 4 -->
+    <section id="sec4">
+        <h2 class="section-title"><span class="section-num">4</span> مقاطع ألفا في العلاقات الضبابية</h2>
+        <p>عند تطبيق هذا المفهوم على العلاقات، فإننا نحول العلاقة الضبابية المعقدة إلى سلسلة من العلاقات الكلاسيكية (Binary Relations).</p>
+ 
+        <h3 class="text-xl mt-6 mb-2">كيفية التطبيق</h3>
+        <p>إذا كانت لدينا مصفوفة علاقة ضبابية \(R\)، فإن \(R_\alpha\) هي مصفوفة ثنائية (0 و 1) حيث:</p>
+        <ul class="list-disc pr-8 space-y-2 mt-2">
+            <li>نضع القيمة <strong>1</strong> إذا كانت \(\mu_R(x, y) \geq \alpha\).</li>
+            <li>نضع القيمة <strong>0</strong> إذا كانت \(\mu_R(x, y) < \alpha\).</li>
+        </ul>
+ 
+        <h3 class="text-xl mt-6 mb-2">تفسير العلاقات عند مستويات \(\alpha\) المختلفة</h3>
+        <ul class="list-disc pr-8 space-y-2 mt-2">
+            <li><strong class="text-green-700">\(\alpha\) مرتفع (قريب من 1):</strong> يمثل علاقة "قوية جداً" أو "مؤكدة"، حيث يتم تجاهل الروابط الضعيفة.</li>
+            <li><strong class="text-orange-700">\(\alpha\) منخفض (قريب من 0):</strong> يمثل علاقة "شاملة" تأخذ في الاعتبار حتى الروابط الهامشية.</li>
+        </ul>
+    </section>
+ 
+    <!-- Section 5 -->
+    <section id="sec5">
+        <h2 class="section-title"><span class="section-num">5</span> الصياغة الرياضية وأمثلة محلولة</h2>
+        <div class="bg-white border-2 p-6 rounded-lg shadow-sm" style="border-color: var(--uni-light-bg)">
+            <h3 class="text-xl mb-4 font-bold" style="color: var(--uni-primary)">مثال عددي (1):</h3>
+            <p>لنفرض لدينا مجموعتين من البيانات: \(X = \{x_1, x_2\}\) و \(Y = \{y_1, y_2\}\).</p>
+            <p>العلاقة الضبابية \(R\) معطاة بالمصفوفة التالية:</p>
+            <div class="math-box text-center">
+                $$R = \begin{bmatrix} 0.8 & 0.4 \\ 0.2 & 1.0 \end{bmatrix}$$
+            </div>
+            <p><strong>المطلوب:</strong> إيجاد مقاطع ألفا عند \(\alpha = 0.5\) وعند \(\alpha = 0.9\).</p>
+ 
+            <h4 class="font-bold mt-4 text-lg" style="color: var(--uni-primary)">الحل:</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                <div class="bg-gray-50 p-4 rounded border border-gray-200">
+                    <p class="font-bold mb-2" style="color: var(--uni-primary)">عند \(\alpha = 0.5\):</p>
+                    <ul class="text-sm space-y-2" dir="ltr" style="text-align:left">
+                        <li>\(\mu_R(x_1, y_1) = 0.8 \geq 0.5 \implies 1\)</li>
+                        <li>\(\mu_R(x_1, y_2) = 0.4 &lt; 0.5 \implies 0\)</li>
+                        <li>\(\mu_R(x_2, y_1) = 0.2 &lt; 0.5 \implies 0\)</li>
+                        <li>\(\mu_R(x_2, y_2) = 1.0 \geq 0.5 \implies 1\)</li>
+                    </ul>
+                    <div class="mt-4 text-center border-t border-gray-300 pt-2 text-lg">
+                        $$R_{0.5} = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}$$
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded border border-gray-200">
+                    <p class="font-bold mb-2" style="color: var(--uni-primary)">عند \(\alpha = 0.9\):</p>
+                    <ul class="text-sm space-y-2" dir="ltr" style="text-align:left">
+                        <li>\(\mu_R(x_1, y_1) = 0.8 &lt; 0.9 \implies 0\)</li>
+                        <li>\(\mu_R(x_1, y_2) = 0.4 &lt; 0.9 \implies 0\)</li>
+                        <li>\(\mu_R(x_2, y_1) = 0.2 &lt; 0.9 \implies 0\)</li>
+                        <li>\(\mu_R(x_2, y_2) = 1.0 \geq 0.9 \implies 1\)</li>
+                    </ul>
+                    <div class="mt-4 text-center border-t border-gray-300 pt-2 text-lg">
+                        $$R_{0.9} = \begin{bmatrix} 0 & 0 \\ 0 & 1 \end{bmatrix}$$
+                    </div>
+                </div>
+            </div>
+            <p class="mt-4 text-center font-bold p-3 rounded shadow-sm border" style="color: var(--uni-primary); background-color: var(--uni-light-bg); border-color: var(--uni-secondary)">نلاحظ أنه عند زيادة قيمة ألفا، تصبح العلاقة أكثر صرامة.</p>
+        </div>
+ 
+        <!-- Interactive Panel -->
+        <div class="interactive-panel mt-8">
+            <h3 class="text-xl font-bold mb-2 flex items-center gap-2" style="color: var(--uni-secondary)">
+                <span class="interactive-controls">💡</span>
+                <span>محاكي مصفوفة العلاقة الضبابية</span>
+            </h3>
+            <p class="panel-subtitle text-sm mb-6" style="color: #d1d5db;">
+                <span class="interactive-controls">غيّر قيمة \(\alpha\) ولاحظ كيف تتغير المصفوفة القاطعة \(R_\alpha\) لحظياً بناءً على العلاقة الضبابية الأصلية.</span>
+                <span class="print-summary" style="color:#444; font-style: italic;">الجدول التالي يوضح نتائج مقاطع ألفا عند أربعة مستويات مختلفة للمصفوفة الضبابية الأصلية \(R\).</span>
+            </p>
+ 
+            <!-- Screen: interactive controls -->
+            <div class="interactive-controls flex flex-col md:flex-row gap-8 items-center justify-center">
+                <div class="w-full md:w-1/2">
+                    <label class="block mb-3 font-bold">
+                        مستوى القطع \(\alpha\):
+                        <span id="alpha-val" class="text-2xl mr-2" style="color: var(--uni-secondary)">0.50</span>
+                    </label>
+                    <input type="range" id="alpha-slider" min="0" max="1" step="0.05" value="0.5">
+                    <div class="mt-6 text-sm border-t border-gray-600 pt-4 text-center" style="color:#d1d5db">
+                        المصفوفة الأصلية \(R\):<br>
+                        \([0.8,\ 0.4]\)<br>
+                        \([0.2,\ 1.0]\)
+                    </div>
+                </div>
+                <div class="w-full md:w-1/2 flex flex-col items-center">
+                    <h4 class="text-lg font-bold mb-4" style="color: var(--uni-secondary)">المصفوفة الناتجة \(R_\alpha\):</h4>
+                    <div class="matrix-grid" id="matrix-display">
+                        <div class="matrix-cell" id="cell-0"></div>
+                        <div class="matrix-cell" id="cell-1"></div>
+                        <div class="matrix-cell" id="cell-2"></div>
+                        <div class="matrix-cell" id="cell-3"></div>
+                    </div>
+                </div>
+            </div>
+ 
+            <!-- Print: static summary table replacing the interactive slider -->
+            <div class="print-summary">
+                <p style="color:#333; margin-bottom:0.75rem; font-size:0.9rem;">
+                    المصفوفة الأصلية:
+                    \(R = \begin{bmatrix} 0.8 & 0.4 \\ 0.2 & 1.0 \end{bmatrix}\)
+                </p>
+                <table style="width:100%; border-collapse:collapse; font-size:0.9rem; margin-top:0.5rem;">
+                    <thead>
+                        <tr style="background-color: var(--uni-primary); color:white;">
+                            <th style="padding:0.6rem; border:1px solid #aaa; text-align:center;">مستوى \(\alpha\)</th>
+                            <th style="padding:0.6rem; border:1px solid #aaa; text-align:center;">\(\mu_R(x_1,y_1)=0.8\)</th>
+                            <th style="padding:0.6rem; border:1px solid #aaa; text-align:center;">\(\mu_R(x_1,y_2)=0.4\)</th>
+                            <th style="padding:0.6rem; border:1px solid #aaa; text-align:center;">\(\mu_R(x_2,y_1)=0.2\)</th>
+                            <th style="padding:0.6rem; border:1px solid #aaa; text-align:center;">\(\mu_R(x_2,y_2)=1.0\)</th>
+                            <th style="padding:0.6rem; border:1px solid #aaa; text-align:center;">المصفوفة \(R_\alpha\)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- α = 0.2 -->
+                        <tr>
+                            <td style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">\(\alpha = 0.2\)</td>
+                            <td class="print-matrix-cell-one" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">1</td>
+                            <td class="print-matrix-cell-one" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">1</td>
+                            <td class="print-matrix-cell-one" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">1</td>
+                            <td class="print-matrix-cell-one" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">1</td>
+                            <td style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-family:monospace;">\(\begin{bmatrix}1&1\\1&1\end{bmatrix}\)</td>
+                        </tr>
+                        <!-- α = 0.5 -->
+                        <tr style="background:#fafafa;">
+                            <td style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">\(\alpha = 0.5\)</td>
+                            <td class="print-matrix-cell-one" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">1</td>
+                            <td class="print-matrix-cell-zero" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">0</td>
+                            <td class="print-matrix-cell-zero" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">0</td>
+                            <td class="print-matrix-cell-one" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">1</td>
+                            <td style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-family:monospace;">\(\begin{bmatrix}1&0\\0&1\end{bmatrix}\)</td>
+                        </tr>
+                        <!-- α = 0.8 -->
+                        <tr>
+                            <td style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">\(\alpha = 0.8\)</td>
+                            <td class="print-matrix-cell-one" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">1</td>
+                            <td class="print-matrix-cell-zero" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">0</td>
+                            <td class="print-matrix-cell-zero" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">0</td>
+                            <td class="print-matrix-cell-one" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">1</td>
+                            <td style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-family:monospace;">\(\begin{bmatrix}1&0\\0&1\end{bmatrix}\)</td>
+                        </tr>
+                        <!-- α = 0.9 -->
+                        <tr style="background:#fafafa;">
+                            <td style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">\(\alpha = 0.9\)</td>
+                            <td class="print-matrix-cell-zero" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">0</td>
+                            <td class="print-matrix-cell-zero" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">0</td>
+                            <td class="print-matrix-cell-zero" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">0</td>
+                            <td class="print-matrix-cell-one" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">1</td>
+                            <td style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-family:monospace;">\(\begin{bmatrix}0&0\\0&1\end{bmatrix}\)</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p style="font-size:0.8rem; color:#666; margin-top:0.5rem; text-align:center;">الخلايا الذهبية = 1 (الانتماء يحقق العتبة) &nbsp;|&nbsp; الخلايا الرمادية = 0 (الانتماء لا يحقق العتبة)</p>
+            </div>
+        </div>
+    </section>
+ 
+    <!-- Section 6 -->
+    <section id="sec6">
+        <h2 class="section-title"><span class="section-num">6</span> التطبيقات</h2>
+        <ul class="space-y-4">
+            <li class="flex items-start gap-3">
+                <span class="text-2xl font-bold" style="color: var(--uni-secondary)">▪</span>
+                <div><strong style="color: var(--uni-primary)">أنظمة اتخاذ القرار:</strong> استخدام مقاطع ألفا لفلترة الخيارات التي لا تحقق حداً أدنى من الملاءمة.</div>
+            </li>
+            <li class="flex items-start gap-3">
+                <span class="text-2xl font-bold" style="color: var(--uni-secondary)">▪</span>
+                <div><strong style="color: var(--uni-primary)">التعرف على الأنماط (Pattern Recognition):</strong> في معالجة الصور، تُستخدم الـ \(\alpha\)-cuts لتقسيم الصور (Image Segmentation) بناءً على مستويات شدة الإضاءة الضبابية.</div>
+            </li>
+            <li class="flex items-start gap-3">
+                <span class="text-2xl font-bold" style="color: var(--uni-secondary)">▪</span>
+                <div><strong style="color: var(--uni-primary)">أنظمة التحكم (Control Systems):</strong> تحويل المخرجات الضبابية للمتحكم إلى قيم فيزيائية دقيقة (Defuzzification).</div>
+            </li>
+            <li class="flex items-start gap-3">
+                <span class="text-2xl font-bold" style="color: var(--uni-secondary)">▪</span>
+                <div><strong style="color: var(--uni-primary)">الذكاء الاصطناعي:</strong> تبسيط القواعد الضبابية (Fuzzy Rules) في الأنظمة الخبيرة لتقليل التكلفة الحسابية.</div>
+            </li>
+        </ul>
+    </section>
+ 
+    <!-- Section 7 -->
+    <section id="sec7">
+        <h2 class="section-title"><span class="section-num">7</span> المزايا والقيود</h2>
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th class="w-1/2">المزايا</th>
+                    <th class="w-1/2">القيود</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>تبسيط العمليات الحسابية المعقدة.</td>
+                    <td>اختيار قيمة \(\alpha\) المناسبة قد يكون ذاتياً (Subjective).</td>
+                </tr>
+                <tr>
+                    <td>الربط بين المنطق الرقمي والمنطق الضبابي.</td>
+                    <td>فقدان بعض المعلومات الدقيقة عند التحويل لعلاقة قاطعة.</td>
+                </tr>
+                <tr>
+                    <td>توفير مرونة في تحليل الحساسية للنظام.</td>
+                    <td>تطلب موارد معالجة عند استخدام عدد كبير من مستويات \(\alpha\).</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+ 
+    <!-- Section 8 -->
+    <section id="sec8">
+        <h2 class="section-title"><span class="section-num">8</span> أمثلة تطبيقية واقعية</h2>
+        <h3 class="text-xl mb-2">مثال من هندسة الإنتاج:</h3>
+        <p class="p-4 rounded shadow-sm" style="background-color: var(--uni-light-bg); border-right: 4px solid var(--uni-primary)">
+            في فحص جودة القطع الميكانيكية، قد نحدد علاقة ضبابية \(R\) بين "حجم التآكل" و "عمر القطعة". باستخدام \(\alpha = 0.85\)، يمكن للمهندس تحديد القطع التي يجب استبدالها فوراً (اليقين العالي)، بينما عند \(\alpha = 0.5\) يتم تحديد القطع التي تحتاج لمراقبة مستمرة.
+        </p>
+    </section>
+ 
+    <!-- Section 9 -->
+    <section id="sec9">
+        <h2 class="section-title"><span class="section-num">9</span> الخاتمة</h2>
+        <p>تعتبر مقاطع ألفا في العلاقات الضبابية أداة تحليلية لا غنى عنها في الهندسة الحديثة. فهي لا توفر فقط وسيلة لتبسيط البيانات، بل تمنح المهندسين القدرة على التحكم في مستوى "الدقة" المطلوب في الأنظمة الذكية. إن فهم هذا المفهوم يفتح الآفاق لتطوير خوارزميات أكثر كفاءة في مجالات الروبوتات ومعالجة البيانات الضخمة.</p>
+    </section>
+ 
+    <!-- Section 10 -->
+    <section id="sec10">
+        <h2 class="section-title"><span class="section-num">10</span> المراجع (References)</h2>
+        <div class="space-y-3 text-sm text-gray-600 pl-4" dir="ltr" style="text-align:left">
+            <p>1. Zadeh, L. A. (1965). Fuzzy sets. <i>Information and Control</i>, 8(3), 338-353.</p>
+            <p>2. Klir, G. J., &amp; Yuan, B. (1995). <i>Fuzzy Sets and Fuzzy Logic: Theory and Applications</i>. Prentice Hall.</p>
+            <p>3. Ross, T. J. (2010). <i>Fuzzy Logic with Engineering Applications</i>. John Wiley &amp; Sons.</p>
+            <p>4. Zimmermann, H. J. (2011). <i>Fuzzy Set Theory—and Its Applications</i>. Springer Science &amp; Business Media.</p>
+            <p>5. Pedrycz, W., &amp; Gomide, F. (2007). <i>Fuzzy Systems Engineering: Toward Human-Centric Computing</i>. Wiley-IEEE Press.</p>
+        </div>
+    </section>
+ 
+</main>
+ 
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const slider = document.getElementById('alpha-slider');
+        const display = document.getElementById('alpha-val');
+ 
+        // Original matrix values
+        const rData = [0.8, 0.4, 0.2, 1.0];
+ 
+        function updateMatrix(alphaVal) {
+            rData.forEach((val, i) => {
+                const cell = document.getElementById('cell-' + i);
+                const isOne = val >= alphaVal;
+                // FIX: toggle pre-defined CSS classes instead of building dynamic Tailwind strings
+                cell.textContent = isOne ? '1' : '0';
+                cell.classList.toggle('is-one', isOne);
+                cell.classList.toggle('is-zero', !isOne);
+            });
+        }
+ 
+        slider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value).toFixed(2);
+            display.textContent = val;
+            updateMatrix(parseFloat(val));
+        });
+ 
+        // Initialize
+        updateMatrix(0.5);
+    });
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقرير أكاديمي: مقاطع ألفا (Alpha-Cuts)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --uni-primary: #800000;
+            --uni-secondary: #d4af37;
+            --uni-light-bg: #fffaf0;
+        }
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+            line-height: 1.8;
+        }
+        .paper-container {
+            background-color: #ffffff;
+            max-width: 950px;
+            margin: 3rem auto;
+            padding: 4rem 5rem;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            border-top: 8px solid var(--uni-primary);
+            border-radius: 8px;
+        }
+        h1, h2, h3, h4 { color: var(--uni-primary); font-weight: 700; }
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2.5rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+            font-size: 1.5rem;
+        }
+        .section-num {
+            background-color: var(--uni-primary);
+            color: white;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        .math-box {
+            background-color: var(--uni-light-bg);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-right: 4px solid var(--uni-secondary);
+            margin: 1.5rem 0;
+            font-family: serif;
+            overflow-x: auto;
+        }
+        .styled-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        .styled-table th, .styled-table td {
+            padding: 1rem;
+            border: 1px solid #cbd5e1;
+            text-align: right;
+        }
+        .styled-table th {
+            background-color: var(--uni-primary);
+            color: white;
+        }
+        .styled-table tr:nth-child(even) { background-color: #f8fafc; }
+ 
+        /* ===== FIX 1: Interactive panel uses plain CSS, not Tailwind classes ===== */
+        .interactive-panel {
+            background: linear-gradient(135deg, #1a0505 0%, var(--uni-primary) 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+        }
+        /* ===== FIX 2: Matrix cell styles defined in CSS, toggled via class ===== */
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 4rem);
+            gap: 0.75rem;
+            padding: 1rem;
+            background: rgba(0,0,0,0.3);
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .matrix-cell {
+            width: 4rem;
+            height: 4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .matrix-cell.is-one {
+            background-color: var(--uni-secondary);
+            color: white;
+            box-shadow: 0 0 15px rgba(212,175,55,0.6);
+            transform: scale(1.05);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+        .matrix-cell.is-zero {
+            background-color: rgba(0,0,0,0.4);
+            color: #6b7280;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        /* ===== FIX 3: Slider styling ===== */
+        #alpha-slider {
+            width: 100%;
+            height: 0.75rem;
+            background: #4b5563;
+            border-radius: 9999px;
+            appearance: none;
+            cursor: pointer;
+            outline: none;
+        }
+        #alpha-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            background: var(--uni-secondary);
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 0 6px rgba(212,175,55,0.8);
+        }
+        #alpha-slider::-moz-range-thumb {
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            background: var(--uni-secondary);
+            cursor: pointer;
+            border: 2px solid white;
+        }
+        /* === Static print summary table (hidden on screen) === */
+        .print-summary {
+            display: none;
+        }
+        /* === Matrix cell print overrides === */
+        @media print {
+            body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .paper-container { box-shadow: none; padding: 1cm 1.5cm; margin: 0; border-top: 6px solid var(--uni-primary) !important; border-radius: 0; }
+ 
+            /* Hide the interactive slider/controls, show static summary instead */
+            .interactive-controls { display: none !important; }
+            .print-summary { display: block !important; }
+ 
+            /* Keep the panel visible but re-skin it for print */
+            .interactive-panel {
+                background: #f9f4e8 !important;
+                color: #1a1a1a !important;
+                border: 2px solid var(--uni-primary);
+                box-shadow: none !important;
+                page-break-inside: avoid;
+            }
+            .interactive-panel h3 { color: var(--uni-primary) !important; }
+            .interactive-panel .panel-subtitle { color: #555 !important; }
+ 
+            /* Print matrix cell colours */
+            .print-matrix-cell-one {
+                background-color: var(--uni-secondary) !important;
+                color: white !important;
+                border: 1px solid #a07a10;
+            }
+            .print-matrix-cell-zero {
+                background-color: #e5e7eb !important;
+                color: #374151 !important;
+                border: 1px solid #d1d5db;
+            }
+ 
+            /* General page settings */
+            @page { margin: 1.5cm; }
+            h2, h3 { page-break-after: avoid; }
+            table, .math-box { page-break-inside: avoid; }
+            #toc { page-break-after: always; }
+        }
+ 
+        /* ===== TOC Styles ===== */
+        .toc-item {
+            display: flex;
+            align-items: baseline;
+            gap: 0.25rem;
+            padding: 0.45rem 0;
+            border-bottom: 1px dashed #e2c97a;
+            font-size: 1rem;
+            color: #334155;
+        }
+        .toc-item:last-child { border-bottom: none; }
+        .toc-item a {
+            color: var(--uni-primary);
+            text-decoration: none;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .toc-item a:hover { text-decoration: underline; color: var(--uni-secondary); }
+        .toc-dots {
+            flex: 1;
+            border-bottom: 2px dotted #c9a83a;
+            margin: 0 0.5rem;
+            position: relative;
+            top: -4px;
+        }
+        .toc-num {
+            font-weight: 700;
+            color: var(--uni-primary);
+            background: white;
+            border: 1px solid var(--uni-secondary);
+            border-radius: 4px;
+            padding: 0 0.4rem;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+<main class="paper-container">
+ 
+    <!-- Header -->
+    <header class="text-center mb-12">
+ 
+        <!-- University Identity Block -->
+        <div class="mb-8 pb-6 border-b-2" style="border-color: var(--uni-secondary);">
+            <p class="font-bold text-2xl mb-1" style="color: var(--uni-primary)">جامعة الموصل</p>
+            <p class="font-semibold text-lg text-gray-700">كلية علوم الحاسوب والرياضيات</p>
+            <p class="text-base text-gray-600">قسم بحوث العمليات والتقنيات الذكائية</p>
+        </div>
+ 
+        <h1 class="text-4xl md:text-5xl leading-tight mb-6">
+            تقرير أكاديمي: مقاطع ألفا (Alpha-Cuts)
+            <br>
+            <span class="text-3xl" style="color: var(--uni-secondary)">في العلاقات الضبابية (Fuzzy Relations)</span>
+        </h1>
+ 
+        <div class="inline-block px-8 py-4 rounded-lg mt-4 text-gray-800 shadow-sm" style="background-color: var(--uni-light-bg); border: 1px solid var(--uni-secondary);">
+            <p><strong>اسم الطالب:</strong> فهد فراس ناظم</p>
+            <p><strong>الكلية:</strong> كلية علوم الحاسوب</p>
+            <p><strong>القسم:</strong> قسم بحوث العمليات والتقنيات الذكائية</p>
+            <p><strong>الموضوع:</strong> المنطق الضبابي والأنظمة الذكية</p>
+        </div>
+    </header>
+ 
+<br>
+<br>
+<br>
+<br>
+<br>
+<p>
+    
+</p>
+    <!-- Table of Contents -->
+    <nav id="toc" style="background-color: var(--uni-light-bg); border: 1px solid var(--uni-secondary); border-radius: 10px; padding: 2rem 2.5rem; margin-bottom: 2.5rem; page-break-after: always;">
+        <h2 style="color: var(--uni-primary); font-size: 1.4rem; font-weight: 700; margin-bottom: 1.2rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--uni-secondary); text-align: center;">
+            📋 فهرس المحتويات
+        </h2>
+        <ol style="list-style: none; padding: 0; margin: 0; counter-reset: toc-counter;">
+            <li class="toc-item"><a href="#sec1">المقدمة</a><span class="toc-dots"></span><span class="toc-num">1</span></li>
+            <li class="toc-item"><a href="#sec2">المفاهيم الأساسية</a><span class="toc-dots"></span><span class="toc-num">2</span></li>
+            <li class="toc-item"><a href="#sec3">مفهوم مقاطع ألفا (Alpha-Cuts)</a><span class="toc-dots"></span><span class="toc-num">3</span></li>
+            <li class="toc-item"><a href="#sec4">مقاطع ألفا في العلاقات الضبابية</a><span class="toc-dots"></span><span class="toc-num">4</span></li>
+            <li class="toc-item"><a href="#sec5">الصياغة الرياضية وأمثلة محلولة</a><span class="toc-dots"></span><span class="toc-num">5</span></li>
+            <li class="toc-item"><a href="#sec6">التطبيقات</a><span class="toc-dots"></span><span class="toc-num">6</span></li>
+            <li class="toc-item"><a href="#sec7">المزايا والقيود</a><span class="toc-dots"></span><span class="toc-num">7</span></li>
+            <li class="toc-item"><a href="#sec8">أمثلة تطبيقية واقعية</a><span class="toc-dots"></span><span class="toc-num">8</span></li>
+            <li class="toc-item"><a href="#sec9">الخاتمة</a><span class="toc-dots"></span><span class="toc-num">9</span></li>
+            <li class="toc-item"><a href="#sec10">المراجع</a><span class="toc-dots"></span><span class="toc-num">10</span></li>
+        </ol>
+    </nav>
+ 
+    <!-- Section 1 -->
+    <section id="sec1">
+        <h2 class="section-title"><span class="section-num">1</span> المقدمة</h2>
+        <h3 class="text-xl mb-2">شرح عام لنظرية المجموعات الضبابية (Fuzzy Set Theory)</h3>
+        <p>تعد نظرية المجموعات الضبابية، التي وضع أسسها العالم <strong>لطفي زاده (Lotfi Zadeh)</strong> في عام 1965، ثورة في كيفية معالجة الحواسيب للمعلومات غير الدقيقة. على عكس المنطق الكلاسيكي (Boolean Logic) الذي يعتمد على الثنائية (0 أو 1)، تسمح المجموعات الضبابية بوجود درجات من الانتماء تقع في النطاق \([0, 1]\). هذا النموذج يحاكي الطبيعة البشرية في اتخاذ القرارات بناءً على مفاهيم نسبية مثل "طويل جداً" أو "دافئ قليلاً".</p>
+ 
+        <h3 class="text-xl mt-6 mb-2">أهمية العلاقات الضبابية في الهندسة وعلوم الحاسوب</h3>
+        <p>تنبثق أهمية العلاقات الضبابية من قدرتها على نمذجة الروابط المعقدة بين المتغيرات في الأنظمة الواقعية. في الهندسة، نادراً ما تكون المدخلات دقيقة تماماً؛ لذا تبرز العلاقات الضبابية كأداة قوية في:</p>
+        <ul class="list-disc pr-8 mt-2 space-y-2">
+            <li><strong style="color: var(--uni-primary)">التحكم الذكي:</strong> ربط قيم المستشعرات بالأوامر الميكانيكية.</li>
+            <li><strong style="color: var(--uni-primary)">تحليل البيانات:</strong> اكتشاف الأنماط المخفية بين مجموعات البيانات الضخمة.</li>
+            <li><strong style="color: var(--uni-primary)">اتخاذ القرار:</strong> موازنة المعايير المتعارضة في بيئات غير مؤكدة.</li>
+        </ul>
+    </section>
+ 
+    <!-- Section 2 -->
+    <section id="sec2">
+        <h2 class="section-title"><span class="section-num">2</span> المفاهيم الأساسية</h2>
+        <h3 class="text-xl mb-2">تعريف المجموعات الضبابية</h3>
+        <p>المجموعة الضبابية \(A\) في كون الخطاب (Universe of Discourse) \(X\) هي مجموعة من الأزواج المرتبة، تُعرف رياضياً بـ:</p>
+        <div class="math-box text-center text-lg">
+            $$A = \{ (x, \mu_A(x)) \mid x \in X \}$$
+        </div>
+        <p>حيث \(\mu_A(x)\) هي دالة الانتماء التي تربط كل عنصر \(x\) بقيمة في الفترة \([0, 1]\).</p>
+ 
+        <h3 class="text-xl mt-6 mb-2">تعريف العلاقات الضبابية</h3>
+        <p>العلاقة الضبابية \(R\) هي تعميم للمفهوم الكلاسيكي للعلاقات، حيث تعبر عن درجة الترابط بين عناصر مجموعتين \(X\) و \(Y\). يتم تمثيلها كمجموعة ضبابية في الضرب الديكارتي \(X \times Y\):</p>
+        <div class="math-box text-center text-lg">
+            $$R = \{ ((x, y), \mu_R(x, y)) \mid (x, y) \in X \times Y \}$$
+        </div>
+ 
+        <h3 class="text-xl mt-6 mb-2">دوال الانتماء (Membership Functions)</h3>
+        <p>هي القلب النابض للنظام الضبابي، وتتخذ أشكالاً هندسية مختلفة مثل (المثلثي، شبه المنحرف، أو الجرس الغاوسي) لتحديد كيفية انتقال العنصر من "عدم الانتماء" إلى "الانتماء الكامل".</p>
+    </section>
+ 
+    <!-- Section 3 -->
+    <section id="sec3">
+        <h2 class="section-title"><span class="section-num">3</span> مفهوم مقاطع ألفا (Alpha-Cuts)</h2>
+        <p>تعد مقاطع ألفا هي الجسر الرابط بين العالم الضبابي (Fuzzy) والعالم القاطع (Crisp). فهي تسمح لنا باستخراج المجموعات الفرعية التي تحقق مستوى معيناً من الثقة أو الكفاية.</p>
+ 
+        <h3 class="text-xl mt-6 mb-2">تعريف \(\alpha\)-cut</h3>
+        <p>لمجموعة ضبابية \(A\) ومستوى \(\alpha\) حيث \(\alpha \in [0, 1]\)، يُعرف مقطع ألفا \(A_\alpha\) بأنه المجموعة القاطعة التي تضم كافة العناصر التي لا تقل درجة انتمائها عن \(\alpha\):</p>
+        <div class="math-box text-center text-lg">
+            $$A_\alpha = \{ x \in X \mid \mu_A(x) \geq \alpha \}$$
+        </div>
+ 
+        <h3 class="text-xl mt-6 mb-2">الفرق بين Strong \(\alpha\)-cut و Weak \(\alpha\)-cut</h3>
+        <ul class="list-disc pr-8 space-y-2 mt-2">
+            <li><strong style="color: var(--uni-primary)">المقطع الضعيف (Weak \(\alpha\)-cut):</strong> \(A_\alpha = \{ x \in X \mid \mu_A(x) \geq \alpha \}\).</li>
+            <li><strong style="color: var(--uni-primary)">المقطع القوي (Strong \(\alpha\)-cut):</strong> \(A_\alpha^+ = \{ x \in X \mid \mu_A(x) > \alpha \}\).</li>
+        </ul>
+ 
+        <h3 class="text-xl mt-6 mb-2">التمثيل الرياضي للمفهوم</h3>
+        <p>يمكن إعادة بناء أي مجموعة ضبابية باستخدام مقاطع ألفا الخاصة بها عبر "مبدأ التفكيك" (Decomposition Principle):</p>
+        <div class="math-box text-center text-lg">
+            $$A = \bigcup_{\alpha \in [0,1]} \alpha \cdot A_\alpha$$
+        </div>
+    </section>
+ 
+    <!-- Section 4 -->
+    <section id="sec4">
+        <h2 class="section-title"><span class="section-num">4</span> مقاطع ألفا في العلاقات الضبابية</h2>
+        <p>عند تطبيق هذا المفهوم على العلاقات، فإننا نحول العلاقة الضبابية المعقدة إلى سلسلة من العلاقات الكلاسيكية (Binary Relations).</p>
+ 
+        <h3 class="text-xl mt-6 mb-2">كيفية التطبيق</h3>
+        <p>إذا كانت لدينا مصفوفة علاقة ضبابية \(R\)، فإن \(R_\alpha\) هي مصفوفة ثنائية (0 و 1) حيث:</p>
+        <ul class="list-disc pr-8 space-y-2 mt-2">
+            <li>نضع القيمة <strong>1</strong> إذا كانت \(\mu_R(x, y) \geq \alpha\).</li>
+            <li>نضع القيمة <strong>0</strong> إذا كانت \(\mu_R(x, y) < \alpha\).</li>
+        </ul>
+ 
+        <h3 class="text-xl mt-6 mb-2">تفسير العلاقات عند مستويات \(\alpha\) المختلفة</h3>
+        <ul class="list-disc pr-8 space-y-2 mt-2">
+            <li><strong class="text-green-700">\(\alpha\) مرتفع (قريب من 1):</strong> يمثل علاقة "قوية جداً" أو "مؤكدة"، حيث يتم تجاهل الروابط الضعيفة.</li>
+            <li><strong class="text-orange-700">\(\alpha\) منخفض (قريب من 0):</strong> يمثل علاقة "شاملة" تأخذ في الاعتبار حتى الروابط الهامشية.</li>
+        </ul>
+    </section>
+ 
+    <!-- Section 5 -->
+    <section id="sec5">
+        <h2 class="section-title"><span class="section-num">5</span> الصياغة الرياضية وأمثلة محلولة</h2>
+        <div class="bg-white border-2 p-6 rounded-lg shadow-sm" style="border-color: var(--uni-light-bg)">
+            <h3 class="text-xl mb-4 font-bold" style="color: var(--uni-primary)">مثال عددي (1):</h3>
+            <p>لنفرض لدينا مجموعتين من البيانات: \(X = \{x_1, x_2\}\) و \(Y = \{y_1, y_2\}\).</p>
+            <p>العلاقة الضبابية \(R\) معطاة بالمصفوفة التالية:</p>
+            <div class="math-box text-center">
+                $$R = \begin{bmatrix} 0.8 & 0.4 \\ 0.2 & 1.0 \end{bmatrix}$$
+            </div>
+            <p><strong>المطلوب:</strong> إيجاد مقاطع ألفا عند \(\alpha = 0.5\) وعند \(\alpha = 0.9\).</p>
+ 
+            <h4 class="font-bold mt-4 text-lg" style="color: var(--uni-primary)">الحل:</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                <div class="bg-gray-50 p-4 rounded border border-gray-200">
+                    <p class="font-bold mb-2" style="color: var(--uni-primary)">عند \(\alpha = 0.5\):</p>
+                    <ul class="text-sm space-y-2" dir="ltr" style="text-align:left">
+                        <li>\(\mu_R(x_1, y_1) = 0.8 \geq 0.5 \implies 1\)</li>
+                        <li>\(\mu_R(x_1, y_2) = 0.4 &lt; 0.5 \implies 0\)</li>
+                        <li>\(\mu_R(x_2, y_1) = 0.2 &lt; 0.5 \implies 0\)</li>
+                        <li>\(\mu_R(x_2, y_2) = 1.0 \geq 0.5 \implies 1\)</li>
+                    </ul>
+                    <div class="mt-4 text-center border-t border-gray-300 pt-2 text-lg">
+                        $$R_{0.5} = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}$$
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded border border-gray-200">
+                    <p class="font-bold mb-2" style="color: var(--uni-primary)">عند \(\alpha = 0.9\):</p>
+                    <ul class="text-sm space-y-2" dir="ltr" style="text-align:left">
+                        <li>\(\mu_R(x_1, y_1) = 0.8 &lt; 0.9 \implies 0\)</li>
+                        <li>\(\mu_R(x_1, y_2) = 0.4 &lt; 0.9 \implies 0\)</li>
+                        <li>\(\mu_R(x_2, y_1) = 0.2 &lt; 0.9 \implies 0\)</li>
+                        <li>\(\mu_R(x_2, y_2) = 1.0 \geq 0.9 \implies 1\)</li>
+                    </ul>
+                    <div class="mt-4 text-center border-t border-gray-300 pt-2 text-lg">
+                        $$R_{0.9} = \begin{bmatrix} 0 & 0 \\ 0 & 1 \end{bmatrix}$$
+                    </div>
+                </div>
+            </div>
+            <p class="mt-4 text-center font-bold p-3 rounded shadow-sm border" style="color: var(--uni-primary); background-color: var(--uni-light-bg); border-color: var(--uni-secondary)">نلاحظ أنه عند زيادة قيمة ألفا، تصبح العلاقة أكثر صرامة.</p>
+        </div>
+ 
+        <!-- Interactive Panel -->
+        <div class="interactive-panel mt-8">
+            <h3 class="text-xl font-bold mb-2 flex items-center gap-2" style="color: var(--uni-secondary)">
+                <span class="interactive-controls">💡</span>
+                <span>محاكي مصفوفة العلاقة الضبابية</span>
+            </h3>
+            <p class="panel-subtitle text-sm mb-6" style="color: #d1d5db;">
+                <span class="interactive-controls">غيّر قيمة \(\alpha\) ولاحظ كيف تتغير المصفوفة القاطعة \(R_\alpha\) لحظياً بناءً على العلاقة الضبابية الأصلية.</span>
+                <span class="print-summary" style="color:#444; font-style: italic;">الجدول التالي يوضح نتائج مقاطع ألفا عند أربعة مستويات مختلفة للمصفوفة الضبابية الأصلية \(R\).</span>
+            </p>
+ 
+            <!-- Screen: interactive controls -->
+            <div class="interactive-controls flex flex-col md:flex-row gap-8 items-center justify-center">
+                <div class="w-full md:w-1/2">
+                    <label class="block mb-3 font-bold">
+                        مستوى القطع \(\alpha\):
+                        <span id="alpha-val" class="text-2xl mr-2" style="color: var(--uni-secondary)">0.50</span>
+                    </label>
+                    <input type="range" id="alpha-slider" min="0" max="1" step="0.05" value="0.5">
+                    <div class="mt-6 text-sm border-t border-gray-600 pt-4 text-center" style="color:#d1d5db">
+                        المصفوفة الأصلية \(R\):<br>
+                        \([0.8,\ 0.4]\)<br>
+                        \([0.2,\ 1.0]\)
+                    </div>
+                </div>
+                <div class="w-full md:w-1/2 flex flex-col items-center">
+                    <h4 class="text-lg font-bold mb-4" style="color: var(--uni-secondary)">المصفوفة الناتجة \(R_\alpha\):</h4>
+                    <div class="matrix-grid" id="matrix-display">
+                        <div class="matrix-cell" id="cell-0"></div>
+                        <div class="matrix-cell" id="cell-1"></div>
+                        <div class="matrix-cell" id="cell-2"></div>
+                        <div class="matrix-cell" id="cell-3"></div>
+                    </div>
+                </div>
+            </div>
+ 
+            <!-- Print: static summary table replacing the interactive slider -->
+            <div class="print-summary">
+                <p style="color:#333; margin-bottom:0.75rem; font-size:0.9rem;">
+                    المصفوفة الأصلية:
+                    \(R = \begin{bmatrix} 0.8 & 0.4 \\ 0.2 & 1.0 \end{bmatrix}\)
+                </p>
+                <table style="width:100%; border-collapse:collapse; font-size:0.9rem; margin-top:0.5rem;">
+                    <thead>
+                        <tr style="background-color: var(--uni-primary); color:white;">
+                            <th style="padding:0.6rem; border:1px solid #aaa; text-align:center;">مستوى \(\alpha\)</th>
+                            <th style="padding:0.6rem; border:1px solid #aaa; text-align:center;">\(\mu_R(x_1,y_1)=0.8\)</th>
+                            <th style="padding:0.6rem; border:1px solid #aaa; text-align:center;">\(\mu_R(x_1,y_2)=0.4\)</th>
+                            <th style="padding:0.6rem; border:1px solid #aaa; text-align:center;">\(\mu_R(x_2,y_1)=0.2\)</th>
+                            <th style="padding:0.6rem; border:1px solid #aaa; text-align:center;">\(\mu_R(x_2,y_2)=1.0\)</th>
+                            <th style="padding:0.6rem; border:1px solid #aaa; text-align:center;">المصفوفة \(R_\alpha\)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- α = 0.2 -->
+                        <tr>
+                            <td style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">\(\alpha = 0.2\)</td>
+                            <td class="print-matrix-cell-one" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">1</td>
+                            <td class="print-matrix-cell-one" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">1</td>
+                            <td class="print-matrix-cell-one" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">1</td>
+                            <td class="print-matrix-cell-one" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">1</td>
+                            <td style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-family:monospace;">\(\begin{bmatrix}1&1\\1&1\end{bmatrix}\)</td>
+                        </tr>
+                        <!-- α = 0.5 -->
+                        <tr style="background:#fafafa;">
+                            <td style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">\(\alpha = 0.5\)</td>
+                            <td class="print-matrix-cell-one" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">1</td>
+                            <td class="print-matrix-cell-zero" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">0</td>
+                            <td class="print-matrix-cell-zero" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">0</td>
+                            <td class="print-matrix-cell-one" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">1</td>
+                            <td style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-family:monospace;">\(\begin{bmatrix}1&0\\0&1\end{bmatrix}\)</td>
+                        </tr>
+                        <!-- α = 0.8 -->
+                        <tr>
+                            <td style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">\(\alpha = 0.8\)</td>
+                            <td class="print-matrix-cell-one" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">1</td>
+                            <td class="print-matrix-cell-zero" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">0</td>
+                            <td class="print-matrix-cell-zero" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">0</td>
+                            <td class="print-matrix-cell-one" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">1</td>
+                            <td style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-family:monospace;">\(\begin{bmatrix}1&0\\0&1\end{bmatrix}\)</td>
+                        </tr>
+                        <!-- α = 0.9 -->
+                        <tr style="background:#fafafa;">
+                            <td style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">\(\alpha = 0.9\)</td>
+                            <td class="print-matrix-cell-zero" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">0</td>
+                            <td class="print-matrix-cell-zero" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">0</td>
+                            <td class="print-matrix-cell-zero" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">0</td>
+                            <td class="print-matrix-cell-one" style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-weight:bold;">1</td>
+                            <td style="padding:0.6rem; border:1px solid #ccc; text-align:center; font-family:monospace;">\(\begin{bmatrix}0&0\\0&1\end{bmatrix}\)</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p style="font-size:0.8rem; color:#666; margin-top:0.5rem; text-align:center;">الخلايا الذهبية = 1 (الانتماء يحقق العتبة) &nbsp;|&nbsp; الخلايا الرمادية = 0 (الانتماء لا يحقق العتبة)</p>
+            </div>
+        </div>
+    </section>
+ 
+    <!-- Section 6 -->
+    <section id="sec6">
+        <h2 class="section-title"><span class="section-num">6</span> التطبيقات</h2>
+        <ul class="space-y-4">
+            <li class="flex items-start gap-3">
+                <span class="text-2xl font-bold" style="color: var(--uni-secondary)">▪</span>
+                <div><strong style="color: var(--uni-primary)">أنظمة اتخاذ القرار:</strong> استخدام مقاطع ألفا لفلترة الخيارات التي لا تحقق حداً أدنى من الملاءمة.</div>
+            </li>
+            <li class="flex items-start gap-3">
+                <span class="text-2xl font-bold" style="color: var(--uni-secondary)">▪</span>
+                <div><strong style="color: var(--uni-primary)">التعرف على الأنماط (Pattern Recognition):</strong> في معالجة الصور، تُستخدم الـ \(\alpha\)-cuts لتقسيم الصور (Image Segmentation) بناءً على مستويات شدة الإضاءة الضبابية.</div>
+            </li>
+            <li class="flex items-start gap-3">
+                <span class="text-2xl font-bold" style="color: var(--uni-secondary)">▪</span>
+                <div><strong style="color: var(--uni-primary)">أنظمة التحكم (Control Systems):</strong> تحويل المخرجات الضبابية للمتحكم إلى قيم فيزيائية دقيقة (Defuzzification).</div>
+            </li>
+            <li class="flex items-start gap-3">
+                <span class="text-2xl font-bold" style="color: var(--uni-secondary)">▪</span>
+                <div><strong style="color: var(--uni-primary)">الذكاء الاصطناعي:</strong> تبسيط القواعد الضبابية (Fuzzy Rules) في الأنظمة الخبيرة لتقليل التكلفة الحسابية.</div>
+            </li>
+        </ul>
+    </section>
+ 
+    <!-- Section 7 -->
+    <section id="sec7">
+        <h2 class="section-title"><span class="section-num">7</span> المزايا والقيود</h2>
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th class="w-1/2">المزايا</th>
+                    <th class="w-1/2">القيود</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>تبسيط العمليات الحسابية المعقدة.</td>
+                    <td>اختيار قيمة \(\alpha\) المناسبة قد يكون ذاتياً (Subjective).</td>
+                </tr>
+                <tr>
+                    <td>الربط بين المنطق الرقمي والمنطق الضبابي.</td>
+                    <td>فقدان بعض المعلومات الدقيقة عند التحويل لعلاقة قاطعة.</td>
+                </tr>
+                <tr>
+                    <td>توفير مرونة في تحليل الحساسية للنظام.</td>
+                    <td>تطلب موارد معالجة عند استخدام عدد كبير من مستويات \(\alpha\).</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+ 
+    <!-- Section 8 -->
+    <section id="sec8">
+        <h2 class="section-title"><span class="section-num">8</span> أمثلة تطبيقية واقعية</h2>
+        <h3 class="text-xl mb-2">مثال من هندسة الإنتاج:</h3>
+        <p class="p-4 rounded shadow-sm" style="background-color: var(--uni-light-bg); border-right: 4px solid var(--uni-primary)">
+            في فحص جودة القطع الميكانيكية، قد نحدد علاقة ضبابية \(R\) بين "حجم التآكل" و "عمر القطعة". باستخدام \(\alpha = 0.85\)، يمكن للمهندس تحديد القطع التي يجب استبدالها فوراً (اليقين العالي)، بينما عند \(\alpha = 0.5\) يتم تحديد القطع التي تحتاج لمراقبة مستمرة.
+        </p>
+    </section>
+ 
+    <!-- Section 9 -->
+    <section id="sec9">
+        <h2 class="section-title"><span class="section-num">9</span> الخاتمة</h2>
+        <p>تعتبر مقاطع ألفا في العلاقات الضبابية أداة تحليلية لا غنى عنها في الهندسة الحديثة. فهي لا توفر فقط وسيلة لتبسيط البيانات، بل تمنح المهندسين القدرة على التحكم في مستوى "الدقة" المطلوب في الأنظمة الذكية. إن فهم هذا المفهوم يفتح الآفاق لتطوير خوارزميات أكثر كفاءة في مجالات الروبوتات ومعالجة البيانات الضخمة.</p>
+    </section>
+ 
+    <!-- Section 10 -->
+    <section id="sec10">
+        <h2 class="section-title"><span class="section-num">10</span> المراجع (References)</h2>
+        <div class="space-y-3 text-sm text-gray-600 pl-4" dir="ltr" style="text-align:left">
+            <p>1. Zadeh, L. A. (1965). Fuzzy sets. <i>Information and Control</i>, 8(3), 338-353.</p>
+            <p>2. Klir, G. J., &amp; Yuan, B. (1995). <i>Fuzzy Sets and Fuzzy Logic: Theory and Applications</i>. Prentice Hall.</p>
+            <p>3. Ross, T. J. (2010). <i>Fuzzy Logic with Engineering Applications</i>. John Wiley &amp; Sons.</p>
+            <p>4. Zimmermann, H. J. (2011). <i>Fuzzy Set Theory—and Its Applications</i>. Springer Science &amp; Business Media.</p>
+            <p>5. Pedrycz, W., &amp; Gomide, F. (2007). <i>Fuzzy Systems Engineering: Toward Human-Centric Computing</i>. Wiley-IEEE Press.</p>
+        </div>
+    </section>
+ 
+</main>
+ 
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const slider = document.getElementById('alpha-slider');
+        const display = document.getElementById('alpha-val');
+ 
+        // Original matrix values
+        const rData = [0.8, 0.4, 0.2, 1.0];
+ 
+        function updateMatrix(alphaVal) {
+            rData.forEach((val, i) => {
+                const cell = document.getElementById('cell-' + i);
+                const isOne = val >= alphaVal;
+                // FIX: toggle pre-defined CSS classes instead of building dynamic Tailwind strings
+                cell.textContent = isOne ? '1' : '0';
+                cell.classList.toggle('is-one', isOne);
+                cell.classList.toggle('is-zero', !isOne);
+            });
+        }
+ 
+        slider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value).toFixed(2);
+            display.textContent = val;
+            updateMatrix(parseFloat(val));
+        });
+ 
+        // Initialize
+        updateMatrix(0.5);
+    });
+</script>
+</body>
+</html>

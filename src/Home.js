@@ -1,7 +1,7 @@
 import MoviesPage from "./Card";
 import Hero from "./Hero";
 import { useEffect, useState } from "react";
-
+import Interests from "./interests";
 const Home = () => {
   const [trending, setTrending] = useState([]);
   const [heroImage, setHeroImage] = useState([]);
@@ -43,20 +43,10 @@ const Home = () => {
       .catch((err) => console.error(err));
   }, []);
 
-
-
-
-
-
-
-
-
-
   return (
     <>
-
       <Hero  items={heroImage} gradientColor="black" />
-<MoviesPage />
+     <MoviesPage />
     </>
   );
 };

@@ -12,6 +12,7 @@ import ActionMovies from "./action.js"
 import Movies from './detels.js';
 import { useState, useEffect } from 'react';
 import Search from './search.js';
+import  Interests from './interests.js';
 
 import { GlobalProvider } from './context/GlobalContext'; 
 import FavoritesPage from './FavoritesPage'
@@ -36,6 +37,7 @@ function App() {
         <Navbar searchText={searchText} setSearchText={setSearchText} />
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/Interests" element={<Interests />} />
           <Route path="/tv" element={<Tv />} />
           <Route path="/kids" element={<KidsMovies />} />
           <Route path="/trending" element={<TrendingMovies />} />

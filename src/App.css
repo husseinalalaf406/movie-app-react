@@ -730,7 +730,406 @@ body {
   .movie-card h3 { font-size: 0.7rem; }
   .movie-card p { font-size: 0.6rem; }
 }
+/* ================================================================
+   AI MOVIE CHATBOT — paste this block into your app.css
+   Matches your site's design tokens:
+     Accent green : #25eb81f6  (same as .section-title, .btn-trailer, .tagline border)
+     Dark bg      : #0a0a0c
+     Card bg      : #111114 / #1e1e1e
+     Border       : rgba(255,255,255,0.08)
+   ================================================================ */
 
+/* ── Keyframe animations ─────────────────────────────────────── */
+@keyframes ai-bounce {
+  0%, 80%, 100% { transform: translateY(0);   opacity: 0.7; }
+  40%           { transform: translateY(-6px); opacity: 1;   }
+}
+@keyframes ai-pulse {
+  0%, 100% { opacity: 1;   }
+  50%      { opacity: 0.3; }
+}
+@keyframes ai-fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+/* ── Hero wrapper (full-viewport section) ────────────────────── */
+.ai-hero {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0a0a0c;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  padding: 20px 16px;
+  box-sizing: border-box;
+}
+
+/* WebGL canvas — sits behind everything */
+.ai-hero__canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.45;
+}
+
+/* ── Chat card ───────────────────────────────────────────────── */
+.ai-card {
+  position: relative;
+  z-index: 2;
+  /* Responsive max-width — matches your .details-card pattern */
+  width: min(780px, 100%);
+  background: rgba(17, 17, 20, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Green accent stripe — mirrors your .tagline border-left colour */
+.ai-card__topbar {
+  height: 3px;
+  background: linear-gradient(90deg, #25eb81f6 0%, #16a34a 60%, transparent 100%);
+  flex-shrink: 0;
+}
+
+/* ── Header ──────────────────────────────────────────────────── */
+.ai-card__header {
+  padding: 18px 22px 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* Icon box — matches .btn-action style */
+.ai-header-icon {
+  width: 38px;
+  height: 38px;
+  background: rgba(37, 235, 129, 0.1);
+  border: 1px solid rgba(37, 235, 129, 0.22);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.ai-header-text {
+  flex: 1;
+  min-width: 0; /* prevent overflow in flex */
+}
+
+/* Reuses .movie-title weight but smaller */
+.ai-header-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.2;
+}
+
+/* Same muted style as .movie-card p */
+.ai-header-sub {
+  font-size: 0.78rem;
+  color: #6b7280;
+  margin: 2px 0 0;
+}
+
+/* Pulsing live-indicator dot */
+.ai-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #25eb81f6;
+  box-shadow: 0 0 6px #25eb81a5;
+  animation: ai-pulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+/* ── Messages scroll area ────────────────────────────────────── */
+.ai-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 18px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 220px;
+  max-height: 400px;
+  /* Thin green scrollbar — matches .scroll-progress-bar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(37, 235, 129, 0.2) transparent;
+}
+.ai-messages::-webkit-scrollbar       { width: 4px; }
+.ai-messages::-webkit-scrollbar-track { background: transparent; }
+.ai-messages::-webkit-scrollbar-thumb { background: rgba(37, 235, 129, 0.2); border-radius: 2px; }
+
+/* ── Welcome / empty state ───────────────────────────────────── */
+.ai-welcome {
+  text-align: center;
+  padding: 30px 16px;
+  color: #9ca3af;
+}
+
+.ai-welcome__emoji {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: 12px;
+  filter: drop-shadow(0 0 12px rgba(37, 235, 129, 0.28));
+}
+
+/* Mirrors .section-title colour */
+.ai-welcome__title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 6px;
+}
+
+.ai-welcome__text {
+  font-size: 0.85rem;
+  line-height: 1.65;
+  margin: 0 auto;
+  max-width: 360px;
+}
+
+/* ── Message rows ────────────────────────────────────────────── */
+.ai-msg {
+  animation: ai-fadeIn 0.25s ease both;
+}
+
+.ai-msg-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.ai-msg-row--user { justify-content: flex-end; }
+.ai-msg-row--bot  { justify-content: flex-start; }
+
+/* Bot avatar circle */
+.ai-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(37, 235, 129, 0.1);
+  border: 1px solid rgba(37, 235, 129, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+/* Shared bubble base */
+.ai-bubble {
+  max-width: 78%;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  white-space: pre-line;
+  word-break: break-word;
+  color: #ffffff;
+}
+
+/* User bubble — green tint, right-pointing corner */
+.ai-bubble--user {
+  border-radius: 16px 16px 4px 16px;
+  background: rgba(37, 235, 129, 0.12);
+  border: 1px solid rgba(37, 235, 129, 0.22);
+}
+
+/* Bot bubble — dark card, left-pointing corner */
+.ai-bubble--bot {
+  border-radius: 4px 16px 16px 16px;
+  background: #16161a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ── Typing indicator ────────────────────────────────────────── */
+.ai-typing-bubble {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 12px 16px;
+  border-radius: 4px 16px 16px 16px;
+  background: #16161a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Three animated dots — same colour as .scroll-progress-bar */
+.ai-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #25eb81f6;
+  opacity: 0.7;
+  animation: ai-bounce 1.2s ease-in-out infinite;
+}
+.ai-dot--1 { animation-delay: 0s;   }
+.ai-dot--2 { animation-delay: 0.2s; }
+.ai-dot--3 { animation-delay: 0.4s; }
+
+/* ── Suggestion chips ────────────────────────────────────────── */
+.ai-chips {
+  padding: 0 16px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+/* Matches .dropdown-item a hover style */
+.ai-chip {
+  padding: 5px 13px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: #9ca3af;
+  font-size: 0.78rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+  font-family: inherit;
+}
+.ai-chip:hover {
+  border-color: rgba(37, 235, 129, 0.35);
+  color: #25eb81f6;
+  background: rgba(37, 235, 129, 0.06);
+}
+
+/* ── Input area ──────────────────────────────────────────────── */
+.ai-input-area {
+  padding: 13px 15px 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  background: rgba(10, 10, 12, 0.55);
+  flex-shrink: 0;
+}
+
+.ai-textarea {
+  flex: 1;
+  min-height: 44px;
+  max-height: 120px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.35);
+  color: #ffffff;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  outline: none;
+  resize: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: inherit;
+}
+.ai-textarea:focus {
+  border-color: rgba(37, 235, 129, 0.45);
+  box-shadow: 0 0 0 3px rgba(37, 235, 129, 0.07);
+}
+.ai-textarea[dir="rtl"] { text-align: right; }
+.ai-textarea::placeholder { color: #4b5563; }
+
+/* Send button — mirrors .btn-trailer */
+.ai-send-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 18px;
+  border: none;
+  background: #25eb81f6;
+  color: #000;
+  font-size: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.2s, transform 0.1s, opacity 0.2s;
+  font-family: inherit;
+}
+.ai-send-btn:hover:not(.ai-send-btn--disabled) {
+  background: #16a34a;
+  transform: scale(1.05);
+}
+.ai-send-btn--disabled {
+  background: rgba(37, 235, 129, 0.12);
+  color: rgba(37, 235, 129, 0.35);
+  cursor: not-allowed;
+}
+
+/* ================================================================
+   RESPONSIVE BREAKPOINTS
+   Mirrors the existing .details-card, .movie-card, .navbar logic
+   ================================================================ */
+
+/* ── Tablet  (≤ 768px) — matches your existing @media breakpoint */
+@media (max-width: 768px) {
+  .ai-hero {
+    padding: 12px 10px;
+    min-height: 100dvh; /* dynamic viewport height fixes mobile browser bars */
+    align-items: flex-end; /* card sits at bottom like a bottom-sheet */
+  }
+
+  .ai-card {
+    width: 100%;
+    border-radius: 20px 20px 0 0; /* bottom-sheet shape on mobile */
+    /* Expand to fill available vertical space */
+    max-height: 92dvh;
+  }
+
+  .ai-messages {
+    max-height: 45vh;
+  }
+
+  .ai-header-title  { font-size: 0.95rem; }
+  .ai-header-sub    { font-size: 0.73rem; }
+  .ai-bubble        { font-size: 0.88rem; max-width: 85%; }
+  .ai-welcome__text { font-size: 0.82rem; }
+}
+
+/* ── Small mobile  (≤ 480px) — matches your .movie-card small bp */
+@media (max-width: 480px) {
+  .ai-card__header  { padding: 14px 14px 12px; gap: 9px; }
+  .ai-header-icon   { width: 32px; height: 32px; font-size: 15px; }
+  .ai-header-title  { font-size: 0.9rem; }
+  .ai-header-sub    { display: none; } /* reclaim space on very small screens */
+
+  .ai-messages      { padding: 14px 12px 6px; gap: 11px; }
+  .ai-input-area    { padding: 10px 12px 12px; gap: 8px; }
+
+  .ai-textarea      { font-size: 0.85rem; padding: 9px 11px; }
+  .ai-send-btn      { width: 40px; height: 40px; font-size: 16px; }
+
+  .ai-chip          { font-size: 0.73rem; padding: 4px 10px; }
+  .ai-chips         { padding: 0 12px 11px; gap: 6px; }
+
+  .ai-bubble        { font-size: 0.83rem; padding: 9px 12px; }
+}
+
+/* ── Virtual keyboard fix for mobile:
+   When the input is focused, the browser shrinks the viewport.
+   Using dvh units and flex ensures the send button is always visible. */
+@media (max-width: 768px) {
+  .ai-hero { height: 100dvh; }
+  .ai-card { flex: 1; border-radius: 20px 20px 0 0; }
+  .ai-messages { flex: 1; max-height: none; } /* fill remaining space */
+}
 
 
 
