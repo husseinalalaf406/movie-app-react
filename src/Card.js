@@ -1,14 +1,25 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import MovieCard from "./MovieCard";
 import "./App.css";
 
 const Section = ({ title, url }) => {
   const [items, setItems] = useState([]);
   const scrollRef = useRef(null);
   const [progress, setProgress] = useState(0);
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
-    fetch(url)
+    const apiLang = i18n.language === 'ar' ? 'ar-AE' : 'en-US';
+    // Dynamically insert or replace the language query parameter in TMDB API calls
+    let urlWithLang = url;
+    if (url.includes('language=')) {
+      urlWithLang = url.replace(/language=[a-zA-Z0-9-]+/g, `language=${apiLang}`);
+    } else {
+      urlWithLang = url.includes('?') ? `${url}&language=${apiLang}` : `${url}?language=${apiLang}`;
+    }
+
+    fetch(urlWithLang)
       .then((res) => res.json())
       .then((data) => {
         const results = data.results.map((m) => ({
@@ -19,11 +30,12 @@ const Section = ({ title, url }) => {
           id: m.id,
           subtitle: m.release_date || m.first_air_date || "",
           genre_ids: m.genre_ids || [],
+          vote_average: m.vote_average,
         }));
         setItems(results);
       })
       .catch(console.error);
-  }, [url]);
+  }, [url, i18n.language]);
 
   const handleMovieClick = (movie) => {
     if (movie.genre_ids && movie.genre_ids.length > 0) {
@@ -52,26 +64,47 @@ const Section = ({ title, url }) => {
     <div className="section">
       <h2 className="section-title">{title}</h2>
 
-      <div className="scroll-container">
-        <button className="scroll-btn left" onClick={scrollLeft}>
-          ◀
+      <div className={`scroll-container ${progress <= 1 ? "at-start" : ""} ${progress >= 99 ? "at-end" : ""}`}>
+        <button 
+          className={`scroll-btn left ${progress <= 1 ? "disabled" : ""}`} 
+          onClick={scrollLeft}
+          aria-label={t("scrollLeft", "Scroll left")}
+          disabled={progress <= 1}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="scroll-btn-icon">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
         </button>
 
         <div className="scroll-wrapper" ref={scrollRef} onScroll={handleScroll}>
-          {items.map((m, i) => (
-            <div className="movie-card" key={i}>
-              <Link to={`/movie/${m.id}`} onClick={() => handleMovieClick(m)}> 
-                <img src={m.image} alt={m.title} />
-              </Link>
-
-              <h3>{m.title}</h3>
-              <p>{m.subtitle}</p>
-            </div>
-          ))}
+          {items.length === 0 ? (
+            Array.from({ length: 6 }).map((_, i) => (
+              <div className="premium-movie-card skeleton-only" key={`skeleton-${i}`}>
+                <div className="premium-card-poster-container skeleton-pulsing">
+                  <div className="premium-card-skeleton" />
+                </div>
+                <div className="premium-card-details">
+                  <div className="skeleton-text skeleton-title skeleton-pulsing" style={{ width: "80%" }} />
+                  <div className="skeleton-text skeleton-meta skeleton-pulsing" style={{ width: "40%" }} />
+                </div>
+              </div>
+            ))
+          ) : (
+            items.map((m, i) => (
+              <MovieCard item={m} key={m.id || i} onClick={() => handleMovieClick(m)} />
+            ))
+          )}
         </div>
 
-        <button className="scroll-btn right" onClick={scrollRight}>
-          ▶
+        <button 
+          className={`scroll-btn right ${progress >= 99 ? "disabled" : ""}`} 
+          onClick={scrollRight}
+          aria-label={t("scrollRight", "Scroll right")}
+          disabled={progress >= 99}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="scroll-btn-icon">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
         </button>
       </div>
 
@@ -88,6 +121,7 @@ const Section = ({ title, url }) => {
 const MoviesPage = () => {
   const API_KEY = "2efee2658584346c583ece1fb60886e0";
   const [recommendations, setRecommendations] = useState([]);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const savedGenre = localStorage.getItem('preferred_genre');
@@ -108,21 +142,21 @@ const MoviesPage = () => {
     <div className="movies-page">
       {localStorage.getItem('preferred_genre') && (
         <Section
-          title="Based on your interests"
-          url={`https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&with_genres=${localStorage.getItem('preferred_genre')}&sort_by=popularity.desc&language=en-US&page=1`}
+          title={t("basedOnInterests")}
+          url={`https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&with_genres=${localStorage.getItem('preferred_genre')}&sort_by=popularity.desc&page=1`}
         />
       )}
       <Section
-        title="Popular TV Shows"
-        url={`https://api.themoviedb.org/3/tv/popular?api_key=${API_KEY}&language=en-US&page=1`}
+        title={t("popularTvShows")}
+        url={`https://api.themoviedb.org/3/tv/popular?api_key=${API_KEY}&page=1`}
       />
       <Section
-        title="Kids & Family"
-        url={`https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&with_genres=16,10751&language=en-US&page=1`}
+        title={t("kidsFamily")}
+        url={`https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&with_genres=16,10751&page=1`}
       />
       <Section
-        title="Top Rated Movies"
-        url={`https://api.themoviedb.org/3/movie/top_rated?api_key=${API_KEY}&language=en-US&page=1`}
+        title={t("topRatedMovies")}
+        url={`https://api.themoviedb.org/3/movie/top_rated?api_key=${API_KEY}&page=1`}
       />
     </div>
   );

@@ -1,15 +1,29 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Section from "./show";
 
 const Tv = () => {
   const [shows, setShows] = useState([]);
+  const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const { i18n } = useTranslation();
 
   useEffect(() => {
+    const apiLang = i18n.language === 'ar' ? 'ar-AE' : 'en-US';
+    setError(null);
     fetch(
-      `https://api.themoviedb.org/3/trending/tv/week?api_key=2efee2658584346c583ece1fb60886e0`
+      `https://api.themoviedb.org/3/trending/tv/week?api_key=2efee2658584346c583ece1fb60886e0&language=${apiLang}`
     )
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("api");
+        }
+        return res.json();
+      })
       .then((data) => {
+        if (!data.results) {
+          throw new Error("api");
+        }
         const tvShows = data.results.map((show) => ({
           image: show.poster_path
             ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
@@ -22,10 +36,21 @@ const Tv = () => {
         }));
         setShows(tvShows);
       })
-      .catch((err) => console.error(err));
-  }, []);
+      .catch((err) => {
+        console.error(err);
+        if (!navigator.onLine) {
+          setError("offline");
+        } else {
+          setError("network");
+        }
+      });
+  }, [i18n.language, retryCount]);
  
-return(<Section items={shows}  />)
+  const handleRetry = () => {
+    setRetryCount((prev) => prev + 1);
+  };
+
+  return(<Section items={shows} error={error} onRetry={handleRetry}  />)
 }
 
 

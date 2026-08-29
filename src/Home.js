@@ -45,8 +45,10 @@ const Home = () => {
 
   return (
     <>
-      <Hero  items={heroImage} gradientColor="black" />
-     <MoviesPage />
+      <Hero items={heroImage} gradientColor="black" />
+      <div id="explore-movies-section" className="scroll-reveal">
+        <MoviesPage />
+      </div>
     </>
   );
 };
