@@ -11,7 +11,7 @@ const KidsMovies = () => {
   const { i18n } = useTranslation();
 
   useEffect(() => {
-    const apiLang = i18n.language === 'ar' ? 'ar-AE' : 'en-US';
+    const apiLang = i18n.language === 'ar' ? 'ar' : 'en-US';
     setError(null);
     fetch(
       `https://api.themoviedb.org/3/discover/movie?api_key=2efee2658584346c583ece1fb60886e0&with_genres=16,10751&language=${apiLang}&page=1`

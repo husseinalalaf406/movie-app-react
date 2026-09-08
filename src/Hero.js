@@ -190,32 +190,63 @@ export default function Hero({
 
   // ── Fetch Trending Movie from TMDB Language-aware ───────────
   useEffect(() => {
-    const apiLang = i18n.language === 'ar' ? 'ar-AE' : 'en-US';
+    const isArabic = i18n.language === 'ar';
+    const apiLang = isArabic ? 'ar' : 'en-US';
     setIsHeroLoading(true);
     fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=2efee2658584346c583ece1fb60886e0&language=${apiLang}`)
-      .then((res) => res.json())
-      .then((data) => {
+      .then(async (res) => {
+        if (!res.ok) throw new Error("TMDB response not ok");
+        return res.json();
+      })
+      .then(async (data) => {
         if (data.results && data.results.length > 0) {
           // Select the first trending movie with a valid backdrop path
           const first = data.results.find(m => m.backdrop_path) || data.results[0];
           
+          let movieOverview = first.overview;
+          let movieTitle = first.title || first.original_title;
+
+          // If in Arabic mode and overview or title is missing, fallback to English
+          if (isArabic && (!movieOverview || movieOverview.trim() === "" || !movieTitle)) {
+            try {
+              const fallbackRes = await fetch(
+                `https://api.themoviedb.org/3/movie/${first.id}?api_key=2efee2658584346c583ece1fb60886e0&language=en-US`
+              );
+              if (fallbackRes.ok) {
+                const enData = await fallbackRes.json();
+                if (!movieOverview || movieOverview.trim() === "") {
+                  movieOverview = enData.overview || "";
+                }
+                if (!movieTitle) {
+                  movieTitle = enData.title || first.original_title;
+                }
+              }
+            } catch (fallbackErr) {
+              console.warn("Could not fetch hero fallback overview:", fallbackErr);
+            }
+          }
+
+          if (!movieOverview || movieOverview.trim() === "") {
+            movieOverview = isArabic ? FALLBACKS.ar.overview : FALLBACKS.en.overview;
+          }
+          
           const genreNames = first.genre_ids && first.genre_ids.length > 0
             ? first.genre_ids.slice(0, 2).map(id => {
-                return i18n.language === 'ar' ? getArabicGenre(id) : getEnglishGenre(id);
-              }).join(" / ")
-            : (i18n.language === 'ar' ? "سينما" : "Cinema");
+                return isArabic ? getArabicGenre(id) : getEnglishGenre(id);
+              }).join(isArabic ? " ، " : " / ")
+            : (isArabic ? "سينما" : "Cinema");
 
           setFeaturedMovie({
             id: first.id,
-            title: first.title || first.original_title,
-            overview: first.overview || "",
+            title: movieTitle,
+            overview: movieOverview,
             backdrop: first.backdrop_path 
               ? `https://image.tmdb.org/t/p/original${first.backdrop_path}` 
               : "https://image.tmdb.org/t/p/original/8Y4K2v77XC5enLls67OI3gZ6CcO.jpg",
             rating: first.vote_average ? first.vote_average.toFixed(1) : "8.5",
             releaseYear: first.release_date ? first.release_date.split("-")[0] : "2024",
             genres: genreNames,
-            tagline: i18n.language === 'ar' ? "العرض الأول الأكثر شعبية" : "NUMBER ONE TRENDING"
+            tagline: isArabic ? "العرض الأول الأكثر شعبية" : "NUMBER ONE TRENDING"
           });
         }
       })
@@ -440,9 +471,9 @@ export default function Hero({
   const cinematicBgStyle = {
     backgroundImage: `
       linear-gradient(to bottom, rgba(10, 10, 15, 0) 0%, rgba(10, 10, 15, 0.95) 100%),
-      radial-gradient(circle at 65% 35%, rgba(6, 6, 8, 0.05) 0%, rgba(6, 6, 8, 0.5) 55%, rgba(4, 4, 6, 0.98) 100%),
+      radial-gradient(circle at ${isArabicMode ? "35% 35%" : "65% 35%"}, rgba(6, 6, 8, 0.05) 0%, rgba(6, 6, 8, 0.5) 55%, rgba(4, 4, 6, 0.98) 100%),
       linear-gradient(180deg, rgba(6, 6, 8, 0.25) 0%, rgba(6, 6, 8, 0.5) 45%, rgba(4, 4, 6, 1) 100%),
-      linear-gradient(90deg, rgba(4, 4, 6, 0.96) 0%, rgba(6, 6, 8, 0.72) 40%, rgba(10, 10, 12, 0.15) 100%),
+      linear-gradient(${isArabicMode ? "270deg" : "90deg"}, rgba(4, 4, 6, 0.96) 0%, rgba(6, 6, 8, 0.72) 40%, rgba(10, 10, 12, 0.15) 100%),
       url('${activeMovie.backdrop}')
     `
   };

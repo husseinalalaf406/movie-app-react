@@ -25,7 +25,7 @@ const Interests = () => {
   const fetchMoviesByGenre = (genreId) => {
     setLoading(true);
     setError(null);
-    const apiLang = i18n.language === 'ar' ? 'ar-AE' : 'en-US';
+    const apiLang = i18n.language === 'ar' ? 'ar' : 'en-US';
     const url = `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&with_genres=${genreId}&sort_by=popularity.desc&language=${apiLang}&page=1`;
     fetch(url)
       .then((res) => {

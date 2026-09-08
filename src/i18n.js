@@ -42,6 +42,10 @@ const resources = {
       popularTvShows: "Popular TV Shows",
       kidsFamily: "Kids & Family",
       topRatedMovies: "Top Rated Movies",
+      scrollNext: "Scroll forward",
+      scrollPrev: "Scroll back",
+      scrollLeft: "Scroll left",
+      scrollRight: "Scroll right",
       
       // Details page
       releaseDate: "Release Date:",
@@ -49,6 +53,7 @@ const resources = {
       duration: "Duration:",
       minutes: "min",
       overview: "Overview",
+      movieStory: "Storyline",
       addFavorites: "🤍 Add to Favorites",
       removeFavorites: "❤️ Remove Favorite",
       watchTrailer: "▶ Watch Trailer",
@@ -143,6 +148,10 @@ const resources = {
       popularTvShows: "مسلسلات تلفزيونية شعبية",
       kidsFamily: "أطفال وعائلة",
       topRatedMovies: "الأفلام الأعلى تقييماً",
+      scrollNext: "التمرير للأمام",
+      scrollPrev: "التمرير للخلف",
+      scrollLeft: "التمرير لليسار",
+      scrollRight: "التمرير لليمين",
       
       // Details page
       releaseDate: "تاريخ الإصدار:",
@@ -150,6 +159,7 @@ const resources = {
       duration: "المدة:",
       minutes: "دقيقة",
       overview: "قصة الفيلم",
+      movieStory: "قصة الفيلم",
       addFavorites: "🤍 أضف للمفضلة",
       removeFavorites: "❤️ إزالة من المفضلة",
       watchTrailer: "▶ شاهد العرض الدعائي",

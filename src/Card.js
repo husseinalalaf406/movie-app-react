@@ -10,7 +10,7 @@ const Section = ({ title, url }) => {
   const { t, i18n } = useTranslation();
 
   useEffect(() => {
-    const apiLang = i18n.language === 'ar' ? 'ar-AE' : 'en-US';
+    const apiLang = i18n.language === 'ar' ? 'ar' : 'en-US';
     // Dynamically insert or replace the language query parameter in TMDB API calls
     let urlWithLang = url;
     if (url.includes('language=')) {
@@ -37,6 +37,16 @@ const Section = ({ title, url }) => {
       .catch(console.error);
   }, [url, i18n.language]);
 
+  const isRtl = i18n.language === 'ar';
+
+  // Reset scroll progress if language changes
+  useEffect(() => {
+    setProgress(0);
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft = 0;
+    }
+  }, [i18n.language]);
+
   const handleMovieClick = (movie) => {
     if (movie.genre_ids && movie.genre_ids.length > 0) {
       const favoriteGenre = movie.genre_ids[0];
@@ -48,17 +58,34 @@ const Section = ({ title, url }) => {
     const el = scrollRef.current;
     if (!el) return;
     const scrollWidth = el.scrollWidth - el.clientWidth;
-    const newProgress = (el.scrollLeft / scrollWidth) * 100;
+    if (scrollWidth <= 0) {
+      setProgress(100);
+      return;
+    }
+    const currentScroll = Math.abs(el.scrollLeft);
+    const newProgress = Math.min(100, Math.max(0, (currentScroll / scrollWidth) * 100));
     setProgress(newProgress);
   };
 
   const scrollLeft = () => {
-    scrollRef.current.scrollBy({ left: -scrollRef.current.clientWidth, behavior: "smooth" });
+    if (!scrollRef.current) return;
+    const scrollAmount = scrollRef.current.clientWidth * 0.85;
+    scrollRef.current.scrollBy({ left: -scrollAmount, behavior: "smooth" });
   };
 
   const scrollRight = () => {
-    scrollRef.current.scrollBy({ left: scrollRef.current.clientWidth, behavior: "smooth" });
+    if (!scrollRef.current) return;
+    const scrollAmount = scrollRef.current.clientWidth * 0.85;
+    scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
   };
+
+  // In LTR: Left button scrolls back (disabled at start), Right button scrolls forward (disabled at end)
+  // In RTL: Left button scrolls forward (disabled at end), Right button scrolls back (disabled at start)
+  const isLeftDisabled = isRtl ? progress >= 99 : progress <= 1;
+  const isRightDisabled = isRtl ? progress <= 1 : progress >= 99;
+
+  const leftLabel = isRtl ? t("scrollNext", "Scroll forward") : t("scrollLeft", "Scroll left");
+  const rightLabel = isRtl ? t("scrollPrev", "Scroll back") : t("scrollRight", "Scroll right");
 
   return (
     <div className="section">
@@ -66,10 +93,10 @@ const Section = ({ title, url }) => {
 
       <div className={`scroll-container ${progress <= 1 ? "at-start" : ""} ${progress >= 99 ? "at-end" : ""}`}>
         <button 
-          className={`scroll-btn left ${progress <= 1 ? "disabled" : ""}`} 
+          className={`scroll-btn left ${isLeftDisabled ? "disabled" : ""}`} 
           onClick={scrollLeft}
-          aria-label={t("scrollLeft", "Scroll left")}
-          disabled={progress <= 1}
+          aria-label={leftLabel}
+          disabled={isLeftDisabled}
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="scroll-btn-icon">
             <polyline points="15 18 9 12 15 6"></polyline>
@@ -97,10 +124,10 @@ const Section = ({ title, url }) => {
         </div>
 
         <button 
-          className={`scroll-btn right ${progress >= 99 ? "disabled" : ""}`} 
+          className={`scroll-btn right ${isRightDisabled ? "disabled" : ""}`} 
           onClick={scrollRight}
-          aria-label={t("scrollRight", "Scroll right")}
-          disabled={progress >= 99}
+          aria-label={rightLabel}
+          disabled={isRightDisabled}
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="scroll-btn-icon">
             <polyline points="9 18 15 12 9 6"></polyline>

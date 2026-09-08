@@ -123,7 +123,7 @@ function App() {
   useEffect(() => {
     if (searchText) {
       setSearchLoading(true);
-      const apiLang = i18n.language === 'ar' ? 'ar-AE' : 'en-US';
+      const apiLang = i18n.language === 'ar' ? 'ar' : 'en-US';
       fetch(`https://api.themoviedb.org/3/search/movie?api_key=2efee2658584346c583ece1fb60886e0&query=${encodeURIComponent(searchText)}&language=${apiLang}`)
         .then(Response => Response.json())
         .then((data) => {

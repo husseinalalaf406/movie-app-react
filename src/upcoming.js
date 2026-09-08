@@ -9,7 +9,7 @@ const UpcomingMovies = () => {
   const { i18n } = useTranslation();
 
   useEffect(() => {
-    const apiLang = i18n.language === 'ar' ? 'ar-AE' : 'en-US';
+    const apiLang = i18n.language === 'ar' ? 'ar' : 'en-US';
     setError(null);
     fetch(
       `https://api.themoviedb.org/3/movie/upcoming?api_key=2efee2658584346c583ece1fb60886e0&language=${apiLang}&page=1`

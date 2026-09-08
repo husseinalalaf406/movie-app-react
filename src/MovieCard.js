@@ -55,7 +55,7 @@ export default function MovieCard({ item, onClick }) {
     setShowTrailerModal(true);
     setIsLoadingTrailer(true);
 
-    const apiLang = i18n.language === "ar" ? "ar-AE" : "en-US";
+    const apiLang = i18n.language === "ar" ? "ar" : "en-US";
     try {
       let foundTrailerKey = null;
 
@@ -67,11 +67,29 @@ export default function MovieCard({ item, onClick }) {
         const data = await movieRes.json();
         const trailer = data.results?.find(
           (vid) => vid.site === "YouTube" && vid.type === "Trailer"
-        ) || data.results?.[0];
+        ) || data.results?.find(
+          (vid) => vid.site === "YouTube"
+        );
         if (trailer) foundTrailerKey = trailer.key;
       }
 
-      // 2. If no movie trailer, try fetching TV videos
+      // 2. If no movie trailer in Arabic, fallback to English movie videos
+      if (!foundTrailerKey && apiLang !== "en-US") {
+        const enMovieRes = await fetch(
+          `https://api.themoviedb.org/3/movie/${id}/videos?api_key=2efee2658584346c583ece1fb60886e0&language=en-US`
+        );
+        if (enMovieRes.ok) {
+          const enData = await enMovieRes.json();
+          const trailer = enData.results?.find(
+            (vid) => vid.site === "YouTube" && vid.type === "Trailer"
+          ) || enData.results?.find(
+            (vid) => vid.site === "YouTube"
+          );
+          if (trailer) foundTrailerKey = trailer.key;
+        }
+      }
+
+      // 3. If no movie trailer, try fetching TV videos
       if (!foundTrailerKey) {
         const tvRes = await fetch(
           `https://api.themoviedb.org/3/tv/${id}/videos?api_key=2efee2658584346c583ece1fb60886e0&language=${apiLang}`
@@ -80,7 +98,25 @@ export default function MovieCard({ item, onClick }) {
           const data = await tvRes.json();
           const trailer = data.results?.find(
             (vid) => vid.site === "YouTube" && vid.type === "Trailer"
-          ) || data.results?.[0];
+          ) || data.results?.find(
+            (vid) => vid.site === "YouTube"
+          );
+          if (trailer) foundTrailerKey = trailer.key;
+        }
+      }
+
+      // 4. Fallback for TV videos in English
+      if (!foundTrailerKey && apiLang !== "en-US") {
+        const enTvRes = await fetch(
+          `https://api.themoviedb.org/3/tv/${id}/videos?api_key=2efee2658584346c583ece1fb60886e0&language=en-US`
+        );
+        if (enTvRes.ok) {
+          const data = await enTvRes.json();
+          const trailer = data.results?.find(
+            (vid) => vid.site === "YouTube" && vid.type === "Trailer"
+          ) || data.results?.find(
+            (vid) => vid.site === "YouTube"
+          );
           if (trailer) foundTrailerKey = trailer.key;
         }
       }

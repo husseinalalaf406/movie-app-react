@@ -1,0 +1,6 @@
+{
+  "name": "Movie Tracker",
+  "description": "A movie discovery web application to explore trending movies, browse by genre, search titles, and save favorites.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

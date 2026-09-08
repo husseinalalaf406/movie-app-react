@@ -39,7 +39,8 @@ const Movies = () => {
   const isFavorite = storedMovie ? true : false;
 
   useEffect(() => {
-    const apiLang = i18n.language === 'ar' ? 'ar-AE' : 'en-US';
+    const isArabic = i18n.language === 'ar';
+    const apiLang = isArabic ? 'ar' : 'en-US';
     setLoading(true);
     setError(null);
     setCastLoading(true);
@@ -61,9 +62,9 @@ const Movies = () => {
       return;
     }
     
-    // Fetch details
+    // Fetch details with Arabic primary and English fallback for missing overview/backdrop/title
     fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=2efee2658584346c583ece1fb60886e0&language=${apiLang}`)
-      .then((res) => {
+      .then(async (res) => {
         if (!res.ok) {
           if (res.status === 404) {
             throw new Error("404");
@@ -73,12 +74,52 @@ const Movies = () => {
         }
         return res.json();
       })
-      .then((data) => {
+      .then(async (data) => {
         if (data.success === false) {
           setError("404");
-        } else {
-          setMoviesDetails(data);
+          return;
         }
+
+        // If in Arabic mode and overview, backdrop, or title is empty, fetch English fallback to avoid blank UI
+        if (isArabic) {
+          const needsOverview = !data.overview || data.overview.trim() === "";
+          const needsBackdrop = !data.backdrop_path;
+          const needsTitle = !data.title || data.title.trim() === "";
+
+          if (needsOverview || needsBackdrop || needsTitle) {
+            try {
+              const fallbackRes = await fetch(
+                `https://api.themoviedb.org/3/movie/${id}?api_key=2efee2658584346c583ece1fb60886e0&language=en-US`
+              );
+              if (fallbackRes.ok) {
+                const enData = await fallbackRes.json();
+                if (needsOverview && enData.overview) {
+                  data.overview = enData.overview;
+                }
+                if (needsBackdrop && enData.backdrop_path) {
+                  data.backdrop_path = enData.backdrop_path;
+                }
+                if (needsTitle && (enData.title || data.original_title)) {
+                  data.title = enData.title || data.original_title;
+                }
+                if (!data.tagline && enData.tagline) {
+                  data.tagline = enData.tagline;
+                }
+              }
+            } catch (fallbackErr) {
+              console.warn("Could not fetch English fallback details:", fallbackErr);
+            }
+          }
+        }
+
+        // If overview is still empty, provide graceful fallback text
+        if (!data.overview || data.overview.trim() === "") {
+          data.overview = isArabic
+            ? "لا يتوفر وصف تفصيلي لقصة هذا العمل حالياً."
+            : "No overview available for this title at the moment.";
+        }
+
+        setMoviesDetails(data);
       })
       .catch((err) => {
         console.error(err);
@@ -106,29 +147,65 @@ const Movies = () => {
       .catch((err) => console.error("Error fetching cast:", err))
       .finally(() => setCastLoading(false));
 
-    // Fetch videos (trailer)
-    fetch(`https://api.themoviedb.org/3/movie/${id}/videos?api_key=2efee2658584346c583ece1fb60886e0&language=${apiLang}`)
-      .then((res) => {
-        if (res.ok) return res.json();
-        return null;
-      })
-      .then((data) => {
-        if (data && data.results) {
-          const trailer = data.results.find((vid) => vid.site === "YouTube" && vid.type === "Trailer");
-          if (trailer) {
-            setTrailerKey(trailer.key);
-          } else {
-            setTrailerKey(null);
+    // Fetch videos (trailer) with automatic English/global fallback to guarantee video availability
+    const fetchVideos = async () => {
+      try {
+        let foundKey = null;
+
+        // 1. Try active language first (e.g. 'ar' or 'en-US')
+        const primaryRes = await fetch(
+          `https://api.themoviedb.org/3/movie/${id}/videos?api_key=2efee2658584346c583ece1fb60886e0&language=${apiLang}`
+        );
+        if (primaryRes.ok) {
+          const primaryData = await primaryRes.json();
+          if (primaryData && primaryData.results && primaryData.results.length > 0) {
+            const trailer = primaryData.results.find((vid) => vid.site === "YouTube" && vid.type === "Trailer")
+              || primaryData.results.find((vid) => vid.site === "YouTube" && (vid.type === "Teaser" || vid.type === "Clip"))
+              || primaryData.results.find((vid) => vid.site === "YouTube");
+            if (trailer) foundKey = trailer.key;
           }
-        } else {
-          setTrailerKey(null);
         }
-      })
-      .catch((err) => {
+
+        // 2. If no trailer found in active language (common for Arabic on TMDB), fallback to English
+        if (!foundKey && apiLang !== "en-US") {
+          const enRes = await fetch(
+            `https://api.themoviedb.org/3/movie/${id}/videos?api_key=2efee2658584346c583ece1fb60886e0&language=en-US`
+          );
+          if (enRes.ok) {
+            const enData = await enRes.json();
+            if (enData && enData.results && enData.results.length > 0) {
+              const trailer = enData.results.find((vid) => vid.site === "YouTube" && vid.type === "Trailer")
+                || enData.results.find((vid) => vid.site === "YouTube" && (vid.type === "Teaser" || vid.type === "Clip"))
+                || enData.results.find((vid) => vid.site === "YouTube");
+              if (trailer) foundKey = trailer.key;
+            }
+          }
+        }
+
+        // 3. Fallback without language parameter
+        if (!foundKey) {
+          const globalRes = await fetch(
+            `https://api.themoviedb.org/3/movie/${id}/videos?api_key=2efee2658584346c583ece1fb60886e0`
+          );
+          if (globalRes.ok) {
+            const globalData = await globalRes.json();
+            if (globalData && globalData.results && globalData.results.length > 0) {
+              const trailer = globalData.results.find((vid) => vid.site === "YouTube" && vid.type === "Trailer")
+                || globalData.results.find((vid) => vid.site === "YouTube");
+              if (trailer) foundKey = trailer.key;
+            }
+          }
+        }
+
+        setTrailerKey(foundKey);
+      } catch (err) {
         console.error("Error fetching trailer:", err);
         setTrailerKey(null);
-      })
-      .finally(() => setTrailerLoading(false));
+      } finally {
+        setTrailerLoading(false);
+      }
+    };
+    fetchVideos();
 
     // Fetch similar movies
     fetch(`https://api.themoviedb.org/3/movie/${id}/similar?api_key=2efee2658584346c583ece1fb60886e0&language=${apiLang}`)
@@ -375,7 +452,7 @@ const Movies = () => {
 
             {/* Mobile Genre Chips (Hidden on desktop, visible on mobile) */}
             {moviesDetails.genres && moviesDetails.genres.length > 0 && (
-              <div className="details-mobile-genres">
+              <div className="details-mobile-genres" dir={i18n.language === "ar" ? "rtl" : "ltr"}>
                 {moviesDetails.genres.map((genre) => (
                   <span key={genre.id} className="mobile-genre-pill">
                     {genre.name}
@@ -395,7 +472,7 @@ const Movies = () => {
             {/* 7. Overview */}
             <div className="overview-section">
               <h3 className="section-header elegant-title">
-                {t("overview")}
+                {t("movieStory") || t("overview")}
               </h3>
               <p className={`overview-text ${isOverviewExpanded ? "expanded" : "collapsed"}`}>
                 {moviesDetails.overview}
@@ -517,7 +594,7 @@ const Movies = () => {
                 <span className="fact-title">{t("country")}</span>
                 <span className="fact-value">
                   {moviesDetails.production_countries && moviesDetails.production_countries.length > 0
-                    ? moviesDetails.production_countries.map((c) => c.name).join(", ")
+                    ? moviesDetails.production_countries.map((c) => c.name).join(i18n.language === "ar" ? "، " : ", ")
                     : t("unknown")}
                 </span>
               </div>
@@ -530,13 +607,26 @@ const Movies = () => {
                 <span className="fact-title">{t("productionCompanies")}</span>
                 <span className="fact-value">
                   {moviesDetails.production_companies && moviesDetails.production_companies.length > 0
-                    ? moviesDetails.production_companies.map((c) => c.name).join(", ")
+                    ? moviesDetails.production_companies.map((c) => c.name).join(i18n.language === "ar" ? "، " : ", ")
                     : t("unknown")}
                 </span>
               </div>
             </div>
 
-            {/* 6. Budget */}
+            {/* 6. Genres */}
+            <div className="fact-card">
+              <div className="fact-icon-container genres-icon">🎭</div>
+              <div className="fact-text-container">
+                <span className="fact-title">{t("genres")}</span>
+                <span className="fact-value">
+                  {moviesDetails.genres && moviesDetails.genres.length > 0
+                    ? moviesDetails.genres.map((g) => g.name).join(i18n.language === "ar" ? "، " : ", ")
+                    : t("unknown")}
+                </span>
+              </div>
+            </div>
+
+            {/* 7. Budget */}
             <div className="fact-card">
               <div className="fact-icon-container budget-icon">💰</div>
               <div className="fact-text-container">

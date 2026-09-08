@@ -1981,12 +1981,49 @@ body:not(.dark-mode) .scroll-container::after {
   opacity: 0;
 }
 
+/* RTL Edge Gradients Support */
+[dir="rtl"] .scroll-container::before {
+  left: auto;
+  right: 0;
+  background: linear-gradient(to left, #08080a 0%, rgba(8, 8, 10, 0) 100%);
+}
+
+[dir="rtl"] .scroll-container::after {
+  right: auto;
+  left: 0;
+  background: linear-gradient(to right, #08080a 0%, rgba(8, 8, 10, 0) 100%);
+}
+
+body:not(.dark-mode) [dir="rtl"] .scroll-container::before {
+  background: linear-gradient(to left, #ffffff 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+body:not(.dark-mode) [dir="rtl"] .scroll-container::after {
+  background: linear-gradient(to right, #ffffff 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+[dir="rtl"] .scroll-container.at-start::before {
+  opacity: 0;
+}
+
+[dir="rtl"] .scroll-container.at-start::after {
+  opacity: 1;
+}
+
+[dir="rtl"] .scroll-container.at-end::after {
+  opacity: 0;
+}
+
+[dir="rtl"] .scroll-container.at-end::before {
+  opacity: 1;
+}
+
 .scroll-wrapper {
   display: flex;
   gap: 1.5rem;
   overflow-x: auto;
   scroll-behavior: smooth;
-  padding: 1.25rem 0.5rem;
+  padding: 1.25rem 2.5rem; /* Generous horizontal padding so first and last cards never collide with arrows */
   scrollbar-width: none;
   width: 100%;
   scroll-snap-type: x mandatory;
@@ -2001,11 +2038,11 @@ body:not(.dark-mode) .scroll-container::after {
 .scroll-btn {
   position: absolute;
   top: 50%;
-  transform: translateY(-50%) scale(0.85);
-  background: rgba(15, 15, 20, 0.65);
+  transform: translateY(-50%) scale(0.9);
+  background: rgba(15, 15, 20, 0.75);
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   color: #ffffff;
   width: 48px;
   height: 48px;
@@ -2016,16 +2053,14 @@ body:not(.dark-mode) .scroll-container::after {
   z-index: 10;
   border-radius: 50%;
   transition: 
-    opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-    left 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-    right 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-    background 0.3s ease,
-    border-color 0.3s ease,
-    box-shadow 0.3s ease;
+    opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    background 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
   opacity: 0;
   pointer-events: none;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
 }
 
 .scroll-btn-icon {
@@ -2036,13 +2071,13 @@ body:not(.dark-mode) .scroll-container::after {
 }
 
 body:not(.dark-mode) .scroll-btn {
-  background: rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.12);
   color: #121212;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
 }
 
-/* Auto-hide / Spring Slide-In on Hover */
+/* Position arrows outside the movie card boundary within section gutters */
 .scroll-btn.left {
   left: -20px;
 }
@@ -2051,19 +2086,11 @@ body:not(.dark-mode) .scroll-btn {
   right: -20px;
 }
 
+/* Reveal buttons without sliding inward onto the cards */
 .scroll-container:hover .scroll-btn:not(.disabled),
 .scroll-btn:focus-visible:not(.disabled) {
   opacity: 1;
   pointer-events: auto;
-}
-
-.scroll-container:hover .scroll-btn.left:not(.disabled) {
-  left: 15px;
-  transform: translateY(-50%) scale(1);
-}
-
-.scroll-container:hover .scroll-btn.right:not(.disabled) {
-  right: 15px;
   transform: translateY(-50%) scale(1);
 }
 
@@ -2072,17 +2099,15 @@ body:not(.dark-mode) .scroll-btn {
   background: #25eb81;
   color: #08080a !important;
   border-color: #25eb81;
+  transform: translateY(-50%) scale(1.1) !important;
   box-shadow: 
     0 0 25px rgba(37, 235, 129, 0.65), 
     0 8px 32px 0 rgba(0, 0, 0, 0.45);
 }
 
-.scroll-btn.left:hover {
-  transform: translateY(-50%) scale(1.15) translateX(-2px);
-}
-
+.scroll-btn.left:hover,
 .scroll-btn.right:hover {
-  transform: translateY(-50%) scale(1.15) translateX(2px);
+  transform: translateY(-50%) scale(1.1) !important;
 }
 
 body:not(.dark-mode) .scroll-btn:hover {
@@ -7484,12 +7509,30 @@ body:not(.dark-mode) .badge-rating {
   background: rgba(56, 189, 248, 0.08);
   border: 1px solid rgba(56, 189, 248, 0.22);
   color: #38bdf8;
+  display: inline-flex;
+  align-items: center;
+  margin: 2px 4px;
+}
+
+[dir="rtl"] .badge-genre {
+  margin: 2px 4px;
 }
 
 body:not(.dark-mode) .badge-genre {
   background: rgba(2, 132, 199, 0.06);
   border: 1px solid rgba(2, 132, 199, 0.15);
   color: #0369a1;
+}
+
+/* Base style for mobile genre wrapper: hide on desktop to prevent duplicate unstyled spans */
+.details-mobile-genres {
+  display: none !important;
+}
+
+.mobile-genre-pill {
+  display: inline-flex;
+  align-items: center;
+  margin: 2px 4px;
 }
 
 /* Hover Scale (Desktop Only) */
@@ -7965,21 +8008,28 @@ body:not(.dark-mode) .skeleton-btn {
     display: flex !important;
     flex-wrap: wrap !important;
     justify-content: center !important;
-    gap: 6px !important;
+    gap: 8px !important;
     margin-bottom: 16px !important;
     width: 100% !important;
   }
 
   .mobile-genre-pill {
-    padding: 4px 9px !important;
-    font-size: 9.5px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 4px 10px !important;
+    font-size: 10px !important;
     font-weight: 700 !important;
     border-radius: 100px !important;
     background: rgba(56, 189, 248, 0.08) !important;
     border: 1px solid rgba(56, 189, 248, 0.22) !important;
     color: #38bdf8 !important;
-    text-transform: uppercase !important;
     letter-spacing: 0.02em !important;
+    margin: 2px 4px !important;
+    white-space: nowrap !important;
+  }
+
+  [dir="rtl"] .mobile-genre-pill {
+    margin: 2px 4px !important;
   }
 
   body:not(.dark-mode) .mobile-genre-pill {
