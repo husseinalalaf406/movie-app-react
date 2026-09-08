@@ -309,10 +309,26 @@ const Navbar = ({ searchText, setSearchText, searchLoading }) => {
         <span className="bar"></span>
       </button>
 
-      <div className={`navbar-menu-wrapper ${isMobileMenuOpen ? "is-open" : ""}`} onClick={(e) => e.stopPropagation()}>
+      {/* Mobile Backdrop Overlay */}
+      {isMobileMenuOpen && (
+        <div
+          className="navbar-mobile-backdrop"
+          onClick={() => setIsMobileMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      <div
+        className={`navbar-menu-wrapper ${isMobileMenuOpen ? "is-open" : "collapsed"}`}
+        onClick={(e) => e.stopPropagation()}
+      >
         <ul className="navbar-links-list">
           <li className="navbar-link-item">
-            <Link to="/" className={`navbar-nav-link ${location.pathname === "/" ? "active" : ""}`}>
+            <Link
+              to="/"
+              className={`navbar-nav-link ${location.pathname === "/" ? "active" : ""}`}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
               {t("home")}
             </Link>
           </li>
@@ -368,7 +384,11 @@ const Navbar = ({ searchText, setSearchText, searchLoading }) => {
           </li>
 
           <li className="navbar-link-item">
-            <Link to="/favorites" className={`navbar-nav-link ${location.pathname === "/favorites" ? "active" : ""}`}>
+            <Link
+              to="/favorites"
+              className={`navbar-nav-link ${location.pathname === "/favorites" ? "active" : ""}`}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
               {t("favorites")} <span role="img" aria-label="Favorites heart icon" className="fav-heart">❤️</span>
             </Link>
           </li>
@@ -391,6 +411,7 @@ const Navbar = ({ searchText, setSearchText, searchLoading }) => {
                   onClick={() => {
                     changeLanguage("en");
                     setOpenDropdown(null);
+                    setIsMobileMenuOpen(false);
                   }}
                   className={`language-dropdown-item ${i18n.language === "en" ? "is-active-lang" : ""}`}
                 >
@@ -402,6 +423,7 @@ const Navbar = ({ searchText, setSearchText, searchLoading }) => {
                   onClick={() => {
                     changeLanguage("ar");
                     setOpenDropdown(null);
+                    setIsMobileMenuOpen(false);
                   }}
                   className={`language-dropdown-item ${i18n.language === "ar" ? "is-active-lang" : ""}`}
                 >

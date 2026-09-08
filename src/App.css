@@ -668,6 +668,11 @@ html {
   scroll-behavior: smooth;
 }
 
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 /* ================================= */
 /* GLASSMORPHIC NAVBAR STYLES        */
 /* ================================= */
@@ -1716,11 +1721,20 @@ body:not(.dark-mode) .navbar-hamburger .bar {
     display: flex;
   }
 
+  /* Fully hide collapsed sidebar on mobile/tablet viewport in both LTR & RTL */
+  .navbar-menu-wrapper.collapsed,
+  .navbar-menu-wrapper:not(.is-open) {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
   .navbar-menu-wrapper {
     position: fixed;
     top: 0;
     right: -100%;
     width: 320px;
+    max-width: 80vw;
     height: 100vh;
     background: rgba(10, 10, 12, 0.98);
     backdrop-filter: blur(20px);
@@ -1731,10 +1745,17 @@ body:not(.dark-mode) .navbar-hamburger .bar {
     align-items: flex-start;
     padding: 5rem 2rem 2rem;
     gap: 2rem;
-    transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: right 0.35s cubic-bezier(0.16, 1, 0.3, 1), left 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     margin-left: 0;
-    z-index: 2000;
+    z-index: 2100;
     overflow-y: auto;
+  }
+
+  [dir="rtl"] .navbar-menu-wrapper {
+    right: auto;
+    left: -100%;
+    border-left: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   body:not(.dark-mode) .navbar-menu-wrapper {
@@ -1742,8 +1763,21 @@ body:not(.dark-mode) .navbar-hamburger .bar {
     border-left: 1px solid rgba(0, 0, 0, 0.08);
   }
 
+  body:not(.dark-mode) [dir="rtl"] .navbar-menu-wrapper {
+    border-left: none;
+    border-right: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
   .navbar-menu-wrapper.is-open {
-    right: 0;
+    display: flex !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    right: 0 !important;
+  }
+
+  [dir="rtl"] .navbar-menu-wrapper.is-open {
+    left: 0 !important;
+    right: auto !important;
   }
 
   .navbar-links-list {
@@ -5479,12 +5513,21 @@ body:not(.dark-mode) .btn-secondary-outline:hover {
     transform: translateY(-5px) rotate(-45deg) !important;
   }
   
+  /* Fully hide collapsed mobile menu drawer on mobile screens (<= 768px) */
+  .navbar-menu-wrapper.collapsed,
+  .navbar-menu-wrapper:not(.is-open) {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
   /* Modern translucent blur mobile menu drawer */
   .navbar-menu-wrapper {
     position: fixed !important;
     top: 0 !important;
     right: -100% !important;
-    width: 250px !important;
+    width: 260px !important;
+    max-width: 85vw !important;
     height: 100dvh !important;
     background: rgba(8, 8, 10, 0.98) !important;
     backdrop-filter: blur(25px) saturate(200%) !important;
@@ -5494,9 +5537,17 @@ body:not(.dark-mode) .btn-secondary-outline:hover {
     display: flex !important;
     flex-direction: column !important;
     gap: 1.4rem !important;
-    transition: right 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    transition: right 0.35s cubic-bezier(0.16, 1, 0.3, 1), left 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
     z-index: 2100 !important;
     box-shadow: -10px 0 30px rgba(0, 0, 0, 0.8) !important;
+  }
+
+  [dir="rtl"] .navbar-menu-wrapper {
+    right: auto !important;
+    left: -100% !important;
+    border-left: none !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.8) !important;
   }
   
   body:not(.dark-mode) .navbar-menu-wrapper {
@@ -5504,9 +5555,36 @@ body:not(.dark-mode) .btn-secondary-outline:hover {
     border-left: 1px solid rgba(0, 0, 0, 0.06) !important;
     box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1) !important;
   }
+
+  body:not(.dark-mode) [dir="rtl"] .navbar-menu-wrapper {
+    border-left: none !important;
+    border-right: 1px solid rgba(0, 0, 0, 0.06) !important;
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.1) !important;
+  }
   
   .navbar-menu-wrapper.is-open {
+    display: flex !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
     right: 0 !important;
+  }
+
+  [dir="rtl"] .navbar-menu-wrapper.is-open {
+    left: 0 !important;
+    right: auto !important;
+  }
+
+  /* Backdrop overlay when mobile drawer is open */
+  .navbar-mobile-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 2050;
   }
   
   .navbar-links-list {
