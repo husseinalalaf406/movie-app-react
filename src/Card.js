@@ -146,7 +146,7 @@ const Section = ({ title, url }) => {
 };
 
 const MoviesPage = () => {
-  const API_KEY = "2efee2658584346c583ece1fb60886e0";
+  const API_KEY = process.env.REACT_APP_TMDB_API_KEY;
   const [recommendations, setRecommendations] = useState([]);
   const { t } = useTranslation();
 

@@ -9,7 +9,7 @@ const Home = () => {
   useEffect(() => {
     // 🔥 fetch trending movies when page loads
     fetch(
-      `https://api.themoviedb.org/3/trending/movie/week?api_key=2efee2658584346c583ece1fb60886e0`
+      `https://api.themoviedb.org/3/trending/movie/week?api_key=${process.env.REACT_APP_TMDB_API_KEY}`
     )
       .then((res) => res.json())
       .then((data) => {
@@ -29,7 +29,7 @@ const Home = () => {
  useEffect(() => {
     // 🔥 fetch trending movies when page loads
     fetch(
-      `https://api.themoviedb.org/3/trending/movie/week?api_key=2efee2658584346c583ece1fb60886e0`
+      `https://api.themoviedb.org/3/trending/movie/week?api_key=${process.env.REACT_APP_TMDB_API_KEY}`
     )
       .then((res) => res.json())
       .then((data) => {

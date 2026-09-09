@@ -11,7 +11,7 @@ const Interests = () => {
   const [retryCount, setRetryCount] = useState(0);
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
-  const API_KEY = "2efee2658584346c583ece1fb60886e0";
+  const API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 
   const genres = [
     { id: "28", name: isRtl ? "أكشن" : "Action", emoji: "⚔️", color: "rgba(239, 68, 68, 0.08)", border: "rgba(239, 68, 68, 0.4)" },

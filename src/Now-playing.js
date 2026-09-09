@@ -12,7 +12,7 @@ const NowPlayingMovies = () => {
     const apiLang = i18n.language === 'ar' ? 'ar' : 'en-US';
     setError(null);
     fetch(
-      `https://api.themoviedb.org/3/movie/now_playing?api_key=2efee2658584346c583ece1fb60886e0&language=${apiLang}&page=1`
+      `https://api.themoviedb.org/3/movie/now_playing?api_key=${process.env.REACT_APP_TMDB_API_KEY}&language=${apiLang}&page=1`
     )
       .then((res) => {
         if (!res.ok) {

@@ -200,7 +200,7 @@ export default function Hero({
     const isArabic = i18n.language === 'ar';
     const apiLang = isArabic ? 'ar' : 'en-US';
     setIsHeroLoading(true);
-    fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=2efee2658584346c583ece1fb60886e0&language=${apiLang}`)
+    fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${process.env.REACT_APP_TMDB_API_KEY}&language=${apiLang}`)
       .then(async (res) => {
         if (!res.ok) throw new Error("TMDB response not ok");
         return res.json();
@@ -217,7 +217,7 @@ export default function Hero({
           if (isArabic && (!movieOverview || movieOverview.trim() === "" || !movieTitle)) {
             try {
               const fallbackRes = await fetch(
-                `https://api.themoviedb.org/3/movie/${first.id}?api_key=2efee2658584346c583ece1fb60886e0&language=en-US`
+                `https://api.themoviedb.org/3/movie/${first.id}?api_key=${process.env.REACT_APP_TMDB_API_KEY}&language=en-US`
               );
               if (fallbackRes.ok) {
                 const enData = await fallbackRes.json();
