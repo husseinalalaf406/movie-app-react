@@ -1,7 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useGlobalContext } from "./context/GlobalContext";
 import { useTranslation } from "react-i18next";
+import FavoriteBorderOutlinedIcon from "@mui/icons-material/FavoriteBorderOutlined";
+import FavoriteOutlinedIcon from "@mui/icons-material/FavoriteOutlined";
+import PlayArrowOutlinedIcon from "@mui/icons-material/PlayArrowOutlined";
+import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 
 export default function MovieCard({ item, onClick }) {
   const { watchlist, addMovieToWatchlist, removeMovieFromWatchlist } = useGlobalContext();
@@ -160,14 +164,11 @@ export default function MovieCard({ item, onClick }) {
               onClick={handleFavoriteClick}
               aria-label={isFavorite ? t("removeFavorites") : t("addFavorites")}
             >
-              <svg
-                viewBox="0 0 24 24"
-                fill={isFavorite ? "currentColor" : "none"}
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-              </svg>
+              {isFavorite ? (
+                <FavoriteOutlinedIcon className="card-fav-icon" />
+              ) : (
+                <FavoriteBorderOutlinedIcon className="card-fav-icon" />
+              )}
             </button>
 
             {/* IMDb and Rating Badges (top-left) */}
@@ -181,7 +182,7 @@ export default function MovieCard({ item, onClick }) {
               <div className="premium-card-overlay-inner">
                 {/* Watch Trailer CTA */}
                 <button className="premium-card-play-btn" onClick={handleWatchTrailer}>
-                  <span className="play-triangle">▶</span>
+                  <PlayArrowOutlinedIcon className="play-triangle-mui" />
                   <span className="btn-text">{t("watchTrailer") || "Watch Trailer"}</span>
                 </button>
               </div>
@@ -212,8 +213,8 @@ export default function MovieCard({ item, onClick }) {
           }}
         >
           <div className="premium-trailer-modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="premium-trailer-modal-close" onClick={() => setShowTrailerModal(false)}>
-              &times;
+            <button className="premium-trailer-modal-close" onClick={() => setShowTrailerModal(false)} aria-label="Close trailer">
+              <CloseOutlinedIcon className="modal-close-icon-mui" />
             </button>
             {isLoadingTrailer ? (
               <div className="premium-video-wrapper skeleton-pulsing" style={{ minHeight: "315px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "12px" }}>

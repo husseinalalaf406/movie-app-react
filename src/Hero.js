@@ -2,6 +2,13 @@ import { useState, useEffect, useRef } from "react";
 import { Renderer, Program, Mesh, Triangle, Vec2 } from "ogl";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import PlayArrowOutlinedIcon from "@mui/icons-material/PlayArrowOutlined";
+import MovieOutlinedIcon from "@mui/icons-material/MovieOutlined";
+import SmartToyOutlinedIcon from "@mui/icons-material/SmartToyOutlined";
+import ArrowUpwardOutlinedIcon from "@mui/icons-material/ArrowUpwardOutlined";
+import HourglassEmptyOutlinedIcon from "@mui/icons-material/HourglassEmptyOutlined";
+import StarBorderOutlinedIcon from "@mui/icons-material/StarBorderOutlined";
+import IconBadge from "./IconBadge";
 
 // ============================================================
 // 🎬 WebGL Shaders — DarkVeil visual effect (unchanged)
@@ -525,7 +532,7 @@ export default function Hero({
               {/* Floating Movie Information Badges */}
               <div className="hero-metadata-row">
                 <span className="hero-meta-badge rating-badge">
-                  <span className="star-icon">⭐</span> {activeMovie.rating}
+                  <StarBorderOutlinedIcon className="star-icon-mui" /> {activeMovie.rating}
                 </span>
                 <span className="hero-meta-badge year-badge">{activeMovie.releaseYear}</span>
                 <span className="hero-meta-badge genre-badge">{activeMovie.genres}</span>
@@ -540,7 +547,7 @@ export default function Hero({
                   className="hero-cta-btn btn-primary"
                   aria-label={appLanguage === "ar" ? "شاهد الآن" : "Watch Now"}
                 >
-                  <span className="play-icon">▶</span>
+                  <PlayArrowOutlinedIcon className="play-icon-mui" />
                   <span className="btn-text">{appLanguage === "ar" ? "شاهد الآن" : "Watch Now"}</span>
                 </button>
                 <button 
@@ -548,7 +555,7 @@ export default function Hero({
                   className="hero-cta-btn btn-secondary"
                   aria-label={appLanguage === "ar" ? "استكشف الأفلام" : "Explore Movies"}
                 >
-                  <span className="reel-icon">🎬</span>
+                  <MovieOutlinedIcon className="reel-icon-mui" />
                   <span className="btn-text">{appLanguage === "ar" ? "استكشف الأفلام" : "Explore Movies"}</span>
                 </button>
               </div>
@@ -565,7 +572,7 @@ export default function Hero({
 
             {/* Header */}
             <div className="ai-card__header">
-              <div className="ai-header-icon">🎬</div>
+              <IconBadge icon={<SmartToyOutlinedIcon />} size="small" />
               <div className="ai-header-text">
                 <p className="ai-header-title">
                   {t("aiAssistant")}
@@ -648,7 +655,11 @@ export default function Hero({
                 disabled={isLoading || !userInput.trim()}
                 aria-label="Send message"
               >
-                {isLoading ? "⏳" : "↑"}
+                {isLoading ? (
+                  <HourglassEmptyOutlinedIcon className="ai-send-icon-mui" />
+                ) : (
+                  <ArrowUpwardOutlinedIcon className="ai-send-icon-mui" />
+                )}
               </button>
             </div>
 

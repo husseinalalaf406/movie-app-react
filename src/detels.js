@@ -5,6 +5,28 @@ import "react-loading-skeleton/dist/skeleton.css";
 import { useGlobalContext } from "./context/GlobalContext";
 import ErrorDisplay from "./ErrorDisplay";
 import MovieCard from "./MovieCard";
+import IconBadge from "./IconBadge";
+import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
+import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
+import LanguageOutlinedIcon from "@mui/icons-material/LanguageOutlined";
+import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
+import BusinessOutlinedIcon from "@mui/icons-material/BusinessOutlined";
+import TheaterComedyOutlinedIcon from "@mui/icons-material/TheaterComedyOutlined";
+import AttachMoneyOutlinedIcon from "@mui/icons-material/AttachMoneyOutlined";
+import TrendingUpOutlinedIcon from "@mui/icons-material/TrendingUpOutlined";
+import WhatshotOutlinedIcon from "@mui/icons-material/WhatshotOutlined";
+import HowToVoteOutlinedIcon from "@mui/icons-material/HowToVoteOutlined";
+import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
+import VolumeOffOutlinedIcon from "@mui/icons-material/VolumeOffOutlined";
+import VolumeUpOutlinedIcon from "@mui/icons-material/VolumeUpOutlined";
+import PlayArrowOutlinedIcon from "@mui/icons-material/PlayArrowOutlined";
+import PauseOutlinedIcon from "@mui/icons-material/PauseOutlined";
+import FavoriteBorderOutlinedIcon from "@mui/icons-material/FavoriteBorderOutlined";
+import FavoriteOutlinedIcon from "@mui/icons-material/FavoriteOutlined";
+import MovieOutlinedIcon from "@mui/icons-material/MovieOutlined";
+import RateReviewOutlinedIcon from "@mui/icons-material/RateReviewOutlined";
+import AutoAwesomeOutlinedIcon from "@mui/icons-material/AutoAwesomeOutlined";
+import StarBorderOutlinedIcon from "@mui/icons-material/StarBorderOutlined";
 import "./App.css"; 
 
 const Movies = () => {
@@ -579,13 +601,9 @@ const Movies = () => {
                   title={isMuted ? (t("unmuteAudio") || "Unmute sound") : (t("muteAudio") || "Mute sound")}
                 >
                   {isMuted ? (
-                    <svg className="hero-ctrl-icon" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z" />
-                    </svg>
+                    <VolumeOffOutlinedIcon className="hero-ctrl-icon" />
                   ) : (
-                    <svg className="hero-ctrl-icon" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
-                    </svg>
+                    <VolumeUpOutlinedIcon className="hero-ctrl-icon" />
                   )}
                 </button>
 
@@ -598,13 +616,9 @@ const Movies = () => {
                   title={isPaused ? (t("playPreview") || "Play preview") : (t("pausePreview") || "Pause preview")}
                 >
                   {isPaused ? (
-                    <svg className="center-ctrl-icon play" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M8 5.14v13.72a1 1 0 001.55.83l11-6.86a1 1 0 000-1.66l-11-6.86A1 1 0 008 5.14z" />
-                    </svg>
+                    <PlayArrowOutlinedIcon className="center-ctrl-icon play" />
                   ) : (
-                    <svg className="center-ctrl-icon pause" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-                    </svg>
+                    <PauseOutlinedIcon className="center-ctrl-icon pause" />
                   )}
                 </button>
               </>
@@ -619,7 +633,7 @@ const Movies = () => {
                   onClick={handleManualPlay}
                   aria-label={t("playOfficialTrailer") || "Play Preview"}
                 >
-                  <span className="play-triangle">▶</span>
+                  <PlayArrowOutlinedIcon className="play-triangle-mui" />
                   <span>{t("playOfficialTrailer") || "Play Preview"}</span>
                 </button>
               </div>
@@ -659,7 +673,7 @@ const Movies = () => {
               {/* 2. IMDb Rating Badge */}
               {moviesDetails.vote_average !== undefined && (
                 <div className="premium-metadata-badge badge-rating">
-                  <span className="star-icon">★</span>
+                  <StarBorderOutlinedIcon className="star-icon-mui" />
                   <span className="badge-value">{moviesDetails.vote_average?.toFixed(1)}</span>
                 </div>
               )}
@@ -667,7 +681,7 @@ const Movies = () => {
               {/* 3. Runtime Badge */}
               {moviesDetails.runtime !== undefined && (
                 <div className="premium-metadata-badge badge-runtime">
-                  <span className="clock-icon">🕒</span>
+                  <AccessTimeOutlinedIcon className="clock-icon-mui" />
                   <span className="badge-value">{moviesDetails.runtime} {t("minutes")}</span>
                 </div>
               )}
@@ -726,7 +740,7 @@ const Movies = () => {
                   onClick={handleWatchTrailerAction}
                   aria-label={t("watchTrailer")}
                 >
-                  <span className="btn-icon play-icon">▶</span>
+                  <PlayArrowOutlinedIcon className="btn-icon play-icon" />
                   <span className="btn-text">{t("watchTrailer")}</span>
                 </button>
               )}
@@ -741,7 +755,11 @@ const Movies = () => {
                   }
                 }}
               >
-                <span className="btn-icon heart-icon">{isFavorite ? "♥" : "♡"}</span>
+                {isFavorite ? (
+                  <FavoriteOutlinedIcon className="btn-icon heart-icon" />
+                ) : (
+                  <FavoriteBorderOutlinedIcon className="btn-icon heart-icon" />
+                )}
                 <span className="btn-text">{isFavorite ? t("removeFavorites") : t("addFavorites")}</span>
               </button>
             </div>
@@ -783,7 +801,9 @@ const Movies = () => {
       {/* Movie Facts Section */}
       <div className="movie-facts-section">
         <h3 className="section-header elegant-title">
-          <span className="trailer-title-icon">📊</span>
+          <span className="trailer-title-icon">
+            <BarChartOutlinedIcon />
+          </span>
           {t("movieFacts")}
         </h3>
         
@@ -791,7 +811,7 @@ const Movies = () => {
           <div className="facts-grid">
             {/* 1. Runtime */}
             <div className="fact-card">
-              <div className="fact-icon-container runtime-icon">⏱️</div>
+              <IconBadge icon={<AccessTimeOutlinedIcon />} />
               <div className="fact-text-container">
                 <span className="fact-title">{t("runtimeLabel")}</span>
                 <span className="fact-value">
@@ -802,7 +822,7 @@ const Movies = () => {
 
             {/* 2. Release Date */}
             <div className="fact-card">
-              <div className="fact-icon-container release-icon">📅</div>
+              <IconBadge icon={<CalendarTodayOutlinedIcon />} />
               <div className="fact-text-container">
                 <span className="fact-title">{t("releaseDate").replace(":", "")}</span>
                 <span className="fact-value">{formatDate(moviesDetails.release_date)}</span>
@@ -811,7 +831,7 @@ const Movies = () => {
 
             {/* 3. Original Language */}
             <div className="fact-card">
-              <div className="fact-icon-container language-icon">🌐</div>
+              <IconBadge icon={<LanguageOutlinedIcon />} />
               <div className="fact-text-container">
                 <span className="fact-title">{t("originalLanguage")}</span>
                 <span className="fact-value">{getLanguageName(moviesDetails.original_language)}</span>
@@ -820,7 +840,7 @@ const Movies = () => {
 
             {/* 4. Country */}
             <div className="fact-card">
-              <div className="fact-icon-container country-icon">📍</div>
+              <IconBadge icon={<PlaceOutlinedIcon />} />
               <div className="fact-text-container">
                 <span className="fact-title">{t("country")}</span>
                 <span className="fact-value">
@@ -833,7 +853,7 @@ const Movies = () => {
 
             {/* 5. Production Companies */}
             <div className="fact-card">
-              <div className="fact-icon-container companies-icon">🏢</div>
+              <IconBadge icon={<BusinessOutlinedIcon />} />
               <div className="fact-text-container">
                 <span className="fact-title">{t("productionCompanies")}</span>
                 <span className="fact-value">
@@ -846,7 +866,7 @@ const Movies = () => {
 
             {/* 6. Genres */}
             <div className="fact-card">
-              <div className="fact-icon-container genres-icon">🎭</div>
+              <IconBadge icon={<TheaterComedyOutlinedIcon />} />
               <div className="fact-text-container">
                 <span className="fact-title">{t("genres")}</span>
                 <span className="fact-value">
@@ -859,7 +879,7 @@ const Movies = () => {
 
             {/* 7. Budget */}
             <div className="fact-card">
-              <div className="fact-icon-container budget-icon">💰</div>
+              <IconBadge icon={<AttachMoneyOutlinedIcon />} />
               <div className="fact-text-container">
                 <span className="fact-title">{t("budget")}</span>
                 <span className="fact-value">{formatCurrency(moviesDetails.budget)}</span>
@@ -868,7 +888,7 @@ const Movies = () => {
 
             {/* 7. Revenue */}
             <div className="fact-card">
-              <div className="fact-icon-container revenue-icon">📈</div>
+              <IconBadge icon={<TrendingUpOutlinedIcon />} />
               <div className="fact-text-container">
                 <span className="fact-title">{t("revenue")}</span>
                 <span className="fact-value">{formatCurrency(moviesDetails.revenue)}</span>
@@ -877,7 +897,7 @@ const Movies = () => {
 
             {/* 8. Popularity */}
             <div className="fact-card">
-              <div className="fact-icon-container popularity-icon">🔥</div>
+              <IconBadge icon={<WhatshotOutlinedIcon />} />
               <div className="fact-text-container">
                 <span className="fact-title">{t("popularity")}</span>
                 <span className="fact-value">
@@ -890,7 +910,7 @@ const Movies = () => {
 
             {/* 9. Vote Count */}
             <div className="fact-card">
-              <div className="fact-icon-container votes-icon">🗳️</div>
+              <IconBadge icon={<HowToVoteOutlinedIcon />} />
               <div className="fact-text-container">
                 <span className="fact-title">{t("voteCount")}</span>
                 <span className="fact-value">
@@ -905,7 +925,7 @@ const Movies = () => {
           <div className="facts-grid">
             {[...Array(9)].map((_, idx) => (
               <div className="fact-card" key={`fact-sk-${idx}`}>
-                <div className="fact-icon-container skeleton-pulsing" style={{ border: "none", background: "rgba(255,255,255,0.08)" }} />
+                <IconBadge className="skeleton-pulsing" style={{ border: "none", background: "rgba(255,255,255,0.08)" }} />
                 <div className="fact-text-container" style={{ width: "100%" }}>
                   <div className="skeleton-pulsing" style={{ height: "12px", width: "50%", borderRadius: "4px", marginBottom: "8px" }} />
                   <div className="skeleton-pulsing" style={{ height: "16px", width: "80%", borderRadius: "4px" }} />
@@ -962,7 +982,9 @@ const Movies = () => {
       {/* Trailer Section */}
       <div className="trailer-section" id="movie-trailer-section">
         <h3 className="section-header elegant-title">
-          <span className="trailer-title-icon">🎬</span>
+          <span className="trailer-title-icon">
+            <MovieOutlinedIcon />
+          </span>
           {t("trailer")}
         </h3>
         {trailerLoading ? (
@@ -1006,7 +1028,9 @@ const Movies = () => {
       {/* Reviews Section */}
       <div className="reviews-section" id="movie-reviews-section">
         <h3 className="section-header elegant-title">
-          <span className="trailer-title-icon">💬</span>
+          <span className="trailer-title-icon">
+            <RateReviewOutlinedIcon />
+          </span>
           {t("reviews")}
         </h3>
 
@@ -1128,7 +1152,9 @@ const Movies = () => {
       {/* Similar Movies Section */}
       <div className="similar-movies-section">
         <h3 className="section-header elegant-title">
-          <span className="trailer-title-icon">🍿</span>
+          <span className="trailer-title-icon">
+            <AutoAwesomeOutlinedIcon />
+          </span>
           {t("similarMovies")}
         </h3>
         

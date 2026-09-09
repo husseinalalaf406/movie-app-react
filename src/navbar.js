@@ -2,6 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useGlobalContext } from "./context/GlobalContext";
 import { useTranslation } from "react-i18next";
+import MovieOutlinedIcon from "@mui/icons-material/MovieOutlined";
+import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
+import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
+import FavoriteBorderOutlinedIcon from "@mui/icons-material/FavoriteBorderOutlined";
+import LanguageOutlinedIcon from "@mui/icons-material/LanguageOutlined";
+import KeyboardArrowDownOutlinedIcon from "@mui/icons-material/KeyboardArrowDownOutlined";
+import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
+import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
 import "./App.css";
 
 const Navbar = ({ searchText, setSearchText, searchLoading }) => {
@@ -221,7 +229,7 @@ const Navbar = ({ searchText, setSearchText, searchLoading }) => {
     <nav className={`navbar-container ${isScrolled ? "scrolled" : ""}`} id="main-app-navbar">
       <div className="navbar-brand-wrapper">
         <Link to="/" className="navbar-brand" id="navbar-brand-logo">
-          <span className="brand-accent">🎬</span> {t("logo")}
+          <MovieOutlinedIcon className="brand-accent-mui" /> {t("logo")}
         </Link>
       </div>
 
@@ -229,10 +237,7 @@ const Navbar = ({ searchText, setSearchText, searchLoading }) => {
       <form className="navbar-search-form tablet-search-form" onSubmit={handleSubmit}>
         <div className={`navbar-search-input-wrapper ${isTabletSearchFocused ? "focused" : ""}`}>
           <span className={`navbar-search-icon-container ${searchLoading ? "searching" : ""}`}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="navbar-search-svg">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
+            <SearchOutlinedIcon className="navbar-search-svg" />
           </span>
           <input
             type="text"
@@ -253,7 +258,7 @@ const Navbar = ({ searchText, setSearchText, searchLoading }) => {
               onClick={() => setSearchText("")}
               aria-label={t("clearSearch")}
             >
-              ✕
+              <CloseOutlinedIcon className="navbar-clear-svg" />
             </button>
           )}
           {renderSearchDropdown(isTabletSearchFocused, setIsTabletSearchFocused)}
@@ -264,10 +269,7 @@ const Navbar = ({ searchText, setSearchText, searchLoading }) => {
       <form className="navbar-search-form mobile-navbar-search-form" onSubmit={handleSubmit}>
         <div className={`navbar-search-input-wrapper ${isMobileSearchFocused ? "focused" : ""}`}>
           <span className={`navbar-search-icon-container ${searchLoading ? "searching" : ""}`}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="navbar-search-svg">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
+            <SearchOutlinedIcon className="navbar-search-svg" />
           </span>
           <input
             type="text"
@@ -288,7 +290,7 @@ const Navbar = ({ searchText, setSearchText, searchLoading }) => {
               onClick={() => setSearchText("")}
               aria-label={t("clearSearch")}
             >
-              ✕
+              <CloseOutlinedIcon className="navbar-clear-svg" />
             </button>
           )}
           {renderSearchDropdown(isMobileSearchFocused, setIsMobileSearchFocused)}
@@ -342,7 +344,7 @@ const Navbar = ({ searchText, setSearchText, searchLoading }) => {
               aria-expanded={openDropdown === "browse"}
               id="navbar-browse-dropdown"
             >
-              {t("discover")} <span className="dropdown-caret">▼</span>
+              {t("discover")} <KeyboardArrowDownOutlinedIcon className="dropdown-caret-mui" />
             </button>
             {openDropdown === "browse" && (
               <div className="navbar-dropdown-pane" onClick={(e) => e.stopPropagation()}>
@@ -367,7 +369,7 @@ const Navbar = ({ searchText, setSearchText, searchLoading }) => {
               aria-expanded={openDropdown === "genres"}
               id="navbar-genres-dropdown"
             >
-              {t("genres")} <span className="dropdown-caret">▼</span>
+              {t("genres")} <KeyboardArrowDownOutlinedIcon className="dropdown-caret-mui" />
             </button>
             {openDropdown === "genres" && (
               <div className="navbar-dropdown-pane" onClick={(e) => e.stopPropagation()}>
@@ -389,7 +391,7 @@ const Navbar = ({ searchText, setSearchText, searchLoading }) => {
               className={`navbar-nav-link ${location.pathname === "/favorites" ? "active" : ""}`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              {t("favorites")} <span role="img" aria-label="Favorites heart icon" className="fav-heart">❤️</span>
+              {t("favorites")} <FavoriteBorderOutlinedIcon className="fav-heart-mui" />
             </Link>
           </li>
 
@@ -402,7 +404,7 @@ const Navbar = ({ searchText, setSearchText, searchLoading }) => {
               aria-expanded={openDropdown === "language"}
               id="navbar-language-dropdown"
             >
-              <span className="lang-icon">🌐</span> {i18n.language === "en" ? "Language" : "اللغة"} <span className="dropdown-caret">▼</span>
+              <LanguageOutlinedIcon className="lang-icon-mui" /> {i18n.language === "en" ? "Language" : "اللغة"} <KeyboardArrowDownOutlinedIcon className="dropdown-caret-mui" />
             </button>
             {openDropdown === "language" && (
               <div className="navbar-dropdown-pane language-dropdown-pane" onClick={(e) => e.stopPropagation()}>
@@ -445,9 +447,9 @@ const Navbar = ({ searchText, setSearchText, searchLoading }) => {
             id="navbar-theme-toggler"
           >
             {theme === "light" ? (
-              <span role="img" aria-label="Dark mode moon" className="theme-icon">🌙</span>
+              <DarkModeOutlinedIcon className="theme-icon-mui" />
             ) : (
-              <span role="img" aria-label="Light mode sun" className="theme-icon">☀️</span>
+              <LightModeOutlinedIcon className="theme-icon-mui" />
             )}
           </button>
 
@@ -455,10 +457,7 @@ const Navbar = ({ searchText, setSearchText, searchLoading }) => {
           <form className="navbar-search-form desktop-search-form" onSubmit={handleSubmit}>
             <div className={`navbar-search-input-wrapper ${isSearchFocused ? "focused" : ""}`}>
               <span className={`navbar-search-icon-container ${searchLoading ? "searching" : ""}`}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="navbar-search-svg">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
+                <SearchOutlinedIcon className="navbar-search-svg" />
               </span>
               <input
                 type="text"
@@ -479,7 +478,7 @@ const Navbar = ({ searchText, setSearchText, searchLoading }) => {
                   onClick={() => setSearchText("")}
                   aria-label={t("clearSearch")}
                 >
-                  ✕
+                  <CloseOutlinedIcon className="navbar-clear-svg" />
                 </button>
               )}
               {renderSearchDropdown(isSearchFocused, setIsSearchFocused)}
