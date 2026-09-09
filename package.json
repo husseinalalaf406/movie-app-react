@@ -27,7 +27,7 @@
   "scripts": {
     "dev": "PORT=3000 HOST=0.0.0.0 react-scripts start",
     "start": "react-scripts start",
-    "build": "DISABLE_ESLINT_PLUGIN=true react-scripts build",
+    "build": "DISABLE_ESLINT_PLUGIN=true react-scripts build && rm -rf dist && cp -r build dist",
     "lint": "eslint src",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

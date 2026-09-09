@@ -7491,25 +7491,32 @@ body:not(.dark-mode) .details-hero-banner {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.25); /* Add dark overlay */
+  background-color: transparent;
   background-image: linear-gradient(
     to bottom,
-    rgba(15, 15, 18, 0.02) 0%,      /* Top: almost transparent */
-    rgba(0, 0, 0, 0.25) 50%,        /* Center: rgba(0,0,0,0.25) */
+    rgba(0, 0, 0, 0.55) 0%,          /* Top: dark tone for navbar & badges contrast */
+    rgba(0, 0, 0, 0.2) 18%,          /* Easing dark vignette */
+    rgba(0, 0, 0, 0) 35%,            /* Center: transparent, clean video playback */
+    rgba(0, 0, 0, 0) 55%,            /* Center: no haze or washout */
+    rgba(0, 0, 0, 0.4) 80%,          /* Bottom: smooth transition */
     var(--bg-color) 100%             /* Bottom: blend into page background */
   );
   z-index: 2;
   transition: all 0.3s ease;
+  pointer-events: none;
 }
 
 /* Light mode support */
 body:not(.dark-mode) .details-hero-overlay {
-  background-color: rgba(0, 0, 0, 0.12); /* Add dark overlay */
+  background-color: transparent;
   background-image: linear-gradient(
     to bottom,
-    rgba(255, 255, 255, 0.02) 0%,   /* Top: almost transparent */
-    rgba(0, 0, 0, 0.25) 50%,        /* Center: rgba(0,0,0,0.25) */
-    var(--bg-color) 100%             /* Bottom: blend into page background */
+    rgba(0, 0, 0, 0.5) 0%,           /* Top: dark tone rather than white for navbar & control readability */
+    rgba(0, 0, 0, 0.18) 18%,
+    rgba(0, 0, 0, 0) 35%,
+    rgba(0, 0, 0, 0) 55%,
+    rgba(0, 0, 0, 0.35) 80%,
+    var(--bg-color) 100%
   );
 }
 
@@ -8530,23 +8537,29 @@ body:not(.dark-mode) .skeleton-btn {
     height: 22px !important;
   }
   
-  /* Rich Dark Bottom Gradient Overlays */
+  /* Clean Dark Vignette & Bottom Gradient Overlays (No White Haze) */
   .details-hero-overlay {
+    background-color: transparent !important;
     background-image: linear-gradient(
       to bottom,
-      rgba(15, 15, 20, 0.15) 0%,
-      rgba(15, 15, 20, 0.55) 45%,
-      rgba(15, 15, 20, 0.85) 80%,
-      var(--bg-color) 100%
+      rgba(0, 0, 0, 0.55) 0%,          /* Top: dark tone for navbar & badges contrast */
+      rgba(0, 0, 0, 0.22) 18%,         /* Subtle easing */
+      rgba(0, 0, 0, 0) 35%,            /* Center: clean, crystal-clear video playback */
+      rgba(0, 0, 0, 0) 55%,            /* Center: no haze or washout */
+      rgba(0, 0, 0, 0.45) 80%,         /* Bottom: smooth transition */
+      var(--bg-color) 100%             /* Bottom: blend into page background */
     ) !important;
   }
   
   body:not(.dark-mode) .details-hero-overlay {
+    background-color: transparent !important;
     background-image: linear-gradient(
       to bottom,
-      rgba(241, 245, 249, 0.15) 0%,
-      rgba(241, 245, 249, 0.55) 45%,
-      rgba(241, 245, 249, 0.85) 80%,
+      rgba(0, 0, 0, 0.45) 0%,          /* Top: dark tone rather than white for navbar & control readability */
+      rgba(0, 0, 0, 0.18) 18%,
+      rgba(0, 0, 0, 0) 35%,
+      rgba(0, 0, 0, 0) 55%,
+      rgba(0, 0, 0, 0.35) 80%,
       var(--bg-color) 100%
     ) !important;
   }

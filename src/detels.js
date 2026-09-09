@@ -38,6 +38,12 @@ const Movies = () => {
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
   const [previewReady, setPreviewReady] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const isMutedRef = useRef(true);
+
+  // Sync ref with state so message listener always reads the current mute state
+  useEffect(() => {
+    isMutedRef.current = isMuted;
+  }, [isMuted]);
   const [isPaused, setIsPaused] = useState(false);
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
   const iframeRef = useRef(null);
@@ -79,6 +85,7 @@ const Movies = () => {
     setIsPlayingPreview(false);
     setPreviewReady(false);
     setIsMuted(true);
+    isMutedRef.current = true;
     setIsPaused(false);
     setAutoplayBlocked(false);
     setIsOverviewExpanded(false);
@@ -396,8 +403,26 @@ const Movies = () => {
       if (!event.origin || !event.origin.includes("youtube.com")) return;
       try {
         const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
-        if (data && data.event === "onStateChange") {
-          // 1: playing, 2: paused, 0: ended
+        if (!data) return;
+
+        // Player ready or initial delivery: enforce mute immediately if isMuted is true
+        if (data.event === "onReady" || data.event === "initialDelivery") {
+          if (isMutedRef.current) {
+            sendPlayerCommand("mute");
+            sendPlayerCommand("setVolume", [0]);
+          }
+        }
+
+        if (data.event === "onStateChange") {
+          // -1: unstarted, 1: playing, 2: paused, 3: buffering, 0: ended
+          if (data.info === 1 || data.info === 3 || data.info === -1) {
+            // Before or immediately as playback starts, ensure mute is enforced if muted
+            if (isMutedRef.current) {
+              sendPlayerCommand("mute");
+              sendPlayerCommand("setVolume", [0]);
+            }
+          }
+
           if (data.info === 1) {
             setPreviewReady(true);
             setIsPaused(false);
@@ -405,9 +430,13 @@ const Movies = () => {
           } else if (data.info === 2) {
             setIsPaused(true);
           } else if (data.info === 0) {
-            // Trailer ended: replay / loop seamlessly
+            // Preview ended: replay / loop seamlessly
             sendPlayerCommand("seekTo", [0, true]);
             sendPlayerCommand("playVideo");
+            if (isMutedRef.current) {
+              sendPlayerCommand("mute");
+              sendPlayerCommand("setVolume", [0]);
+            }
           }
         }
       } catch (err) {
@@ -424,6 +453,7 @@ const Movies = () => {
     setIsPlayingPreview(false);
     setPreviewReady(false);
     setIsMuted(true);
+    isMutedRef.current = true;
     setIsPaused(false);
     setAutoplayBlocked(false);
 
@@ -469,19 +499,37 @@ const Movies = () => {
         "*"
       );
     }
-    sendPlayerCommand("mute");
+    // Always enforce mute before or immediately as playback starts
+    if (isMutedRef.current) {
+      sendPlayerCommand("mute");
+      sendPlayerCommand("setVolume", [0]);
+    }
     sendPlayerCommand("playVideo");
     setPreviewReady(true);
+
+    // Staggered mute enforcement so that whenever YouTube attaches its message listener, it mutes immediately
+    [50, 150, 300, 600, 1000].forEach((delay) => {
+      setTimeout(() => {
+        if (isMutedRef.current) {
+          sendPlayerCommand("mute");
+          sendPlayerCommand("setVolume", [0]);
+        }
+      }, delay);
+    });
   };
 
   const toggleMute = (e) => {
     if (e && e.stopPropagation) e.stopPropagation();
     if (isMuted) {
       sendPlayerCommand("unMute");
+      sendPlayerCommand("setVolume", [100]);
       setIsMuted(false);
+      isMutedRef.current = false;
     } else {
       sendPlayerCommand("mute");
+      sendPlayerCommand("setVolume", [0]);
       setIsMuted(true);
+      isMutedRef.current = true;
     }
   };
 
@@ -501,6 +549,10 @@ const Movies = () => {
     setAutoplayBlocked(false);
     setIsPlayingPreview(true);
     setIsPaused(false);
+    if (isMutedRef.current) {
+      sendPlayerCommand("mute");
+      sendPlayerCommand("setVolume", [0]);
+    }
     sendPlayerCommand("playVideo");
   };
 
