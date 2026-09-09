@@ -1,7 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { useGlobalContext } from "./context/GlobalContext";
 import ErrorDisplay from "./ErrorDisplay";
@@ -14,7 +13,6 @@ const Movies = () => {
   const [cast, setCast] = useState([]);
   const [trailerKey, setTrailerKey] = useState(null);
   const [previewKey, setPreviewKey] = useState(null);
-  const [isOfficialTrailerOpen, setIsOfficialTrailerOpen] = useState(false);
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
   const [previewReady, setPreviewReady] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -38,13 +36,9 @@ const Movies = () => {
 
   const [isOverviewExpanded, setIsOverviewExpanded] = useState(false);
 
-  const carouselRef = useRef(null);
-  const [atStart, setAtStart] = useState(true);
-  const [atEnd, setAtEnd] = useState(false);
-
   const { addMovieToWatchlist, removeMovieFromWatchlist, watchlist } = useGlobalContext();
 
-  const storedMovie = watchlist.find((o) => o.id == id);
+  const storedMovie = watchlist.find((o) => Number(o.id) === Number(id));
   const isFavorite = storedMovie ? true : false;
 
   useEffect(() => {
@@ -58,6 +52,8 @@ const Movies = () => {
     setReviewsLoading(true);
     setReviewsPage(1);
     setExpandedReviews({});
+    setPreviewKey(null);
+    setTrailerKey(null);
     setIsPlayingPreview(false);
     setPreviewReady(false);
     setIsMuted(true);
@@ -161,10 +157,10 @@ const Movies = () => {
       .catch((err) => console.error("Error fetching cast:", err))
       .finally(() => setCastLoading(false));
 
-    // Fetch videos (trailer) with automatic English/global fallback to guarantee video availability
+    // Fetch videos with Clip > Teaser priority for preview (Trailers strictly excluded), and Trailer > Teaser > Clip for official trailer
     const fetchVideos = async () => {
       try {
-        let foundKey = null;
+        let allVideos = [];
 
         // 1. Try active language first (e.g. 'ar' or 'en-US')
         const primaryRes = await fetch(
@@ -172,48 +168,86 @@ const Movies = () => {
         );
         if (primaryRes.ok) {
           const primaryData = await primaryRes.json();
-          if (primaryData && primaryData.results && primaryData.results.length > 0) {
-            const trailer = primaryData.results.find((vid) => vid.site === "YouTube" && vid.type === "Trailer")
-              || primaryData.results.find((vid) => vid.site === "YouTube" && (vid.type === "Teaser" || vid.type === "Clip"))
-              || primaryData.results.find((vid) => vid.site === "YouTube");
-            if (trailer) foundKey = trailer.key;
+          if (primaryData && Array.isArray(primaryData.results)) {
+            allVideos = [...primaryData.results];
           }
         }
 
-        // 2. If no trailer found in active language (common for Arabic on TMDB), fallback to English
-        if (!foundKey && apiLang !== "en-US") {
-          const enRes = await fetch(
-            `https://api.themoviedb.org/3/movie/${id}/videos?api_key=2efee2658584346c583ece1fb60886e0&language=en-US`
-          );
-          if (enRes.ok) {
-            const enData = await enRes.json();
-            if (enData && enData.results && enData.results.length > 0) {
-              const trailer = enData.results.find((vid) => vid.site === "YouTube" && vid.type === "Trailer")
-                || enData.results.find((vid) => vid.site === "YouTube" && (vid.type === "Teaser" || vid.type === "Clip"))
-                || enData.results.find((vid) => vid.site === "YouTube");
-              if (trailer) foundKey = trailer.key;
+        // 2. If active language had no videos or is Arabic, also fetch English fallback
+        if (allVideos.length === 0 || apiLang !== "en-US") {
+          try {
+            const enRes = await fetch(
+              `https://api.themoviedb.org/3/movie/${id}/videos?api_key=2efee2658584346c583ece1fb60886e0&language=en-US`
+            );
+            if (enRes.ok) {
+              const enData = await enRes.json();
+              if (enData && Array.isArray(enData.results)) {
+                const existingKeys = new Set(allVideos.map((v) => v.key));
+                enData.results.forEach((v) => {
+                  if (!existingKeys.has(v.key)) {
+                    allVideos.push(v);
+                    existingKeys.add(v.key);
+                  }
+                });
+              }
             }
+          } catch (enErr) {
+            console.warn("Could not fetch English videos fallback:", enErr);
           }
         }
 
-        // 3. Fallback without language parameter
-        if (!foundKey) {
-          const globalRes = await fetch(
-            `https://api.themoviedb.org/3/movie/${id}/videos?api_key=2efee2658584346c583ece1fb60886e0`
-          );
-          if (globalRes.ok) {
-            const globalData = await globalRes.json();
-            if (globalData && globalData.results && globalData.results.length > 0) {
-              const trailer = globalData.results.find((vid) => vid.site === "YouTube" && vid.type === "Trailer")
-                || globalData.results.find((vid) => vid.site === "YouTube");
-              if (trailer) foundKey = trailer.key;
+        // 3. Fallback without language parameter if still empty
+        if (allVideos.length === 0) {
+          try {
+            const globalRes = await fetch(
+              `https://api.themoviedb.org/3/movie/${id}/videos?api_key=2efee2658584346c583ece1fb60886e0`
+            );
+            if (globalRes.ok) {
+              const globalData = await globalRes.json();
+              if (globalData && Array.isArray(globalData.results)) {
+                allVideos = [...globalData.results];
+              }
             }
+          } catch (globalErr) {
+            console.warn("Could not fetch global videos fallback:", globalErr);
           }
         }
 
-        setTrailerKey(foundKey);
+        // Filter for valid YouTube videos
+        const ytVideos = allVideos.filter((v) => v.site === "YouTube" && v.key);
+
+        // LOG ALL RETURNED VIDEO TYPES FOR TMDB VERIFICATION (BUG 1)
+        console.log(
+          `[TMDB Videos] Movie ID ${id} returned ${ytVideos.length} YouTube videos:`,
+          ytVideos.map((v) => ({ name: v.name, type: v.type, official: v.official, key: v.key }))
+        );
+
+        // PREVIEW SELECTION: Priority Clip > Teaser ONLY (Trailers and others strictly excluded)
+        const clipVid = ytVideos.find((v) => v.type === "Clip");
+        const teaserVid = ytVideos.find((v) => v.type === "Teaser");
+        const selectedPreview = clipVid || teaserVid || null;
+
+        // DEDICATED TRAILER SELECTION: Priority Trailer > Teaser > Clip > any
+        const trailerVid = ytVideos.find((v) => v.type === "Trailer");
+        const anyVid = ytVideos[0];
+        const selectedTrailer = trailerVid || teaserVid || clipVid || anyVid || null;
+
+        if (selectedPreview) {
+          console.log(
+            `[TMDB Preview] Selected video for hero preview (Movie ID ${id}): "${selectedPreview.name}" [type: ${selectedPreview.type}, key: ${selectedPreview.key}]` +
+            (selectedPreview.type !== "Clip" ? ` (Clip was not available on TMDB for this movie, used Teaser fallback)` : "")
+          );
+        } else {
+          console.log(
+            `[TMDB Preview] No Clip or Teaser available on TMDB for Movie ID ${id}. Hero preview disabled (showing static backdrop).`
+          );
+        }
+
+        setPreviewKey(selectedPreview ? selectedPreview.key : null);
+        setTrailerKey(selectedTrailer ? selectedTrailer.key : null);
       } catch (err) {
-        console.error("Error fetching trailer:", err);
+        console.error("Error fetching videos:", err);
+        setPreviewKey(null);
         setTrailerKey(null);
       } finally {
         setTrailerLoading(false);
@@ -375,7 +409,7 @@ const Movies = () => {
       clearTimeout(previewTimerRef.current);
     }
 
-    if (trailerKey && !loading) {
+    if (previewKey && !loading) {
       // Show static backdrop image briefly (1200ms) before starting the muted preview
       previewTimerRef.current = setTimeout(() => {
         setIsPlayingPreview(true);
@@ -387,7 +421,7 @@ const Movies = () => {
         clearTimeout(previewTimerRef.current);
       }
     };
-  }, [id, trailerKey, loading]);
+  }, [id, previewKey, loading]);
 
   // Graceful fallback if autoplay is blocked by browser policy or mobile device
   useEffect(() => {
@@ -449,60 +483,9 @@ const Movies = () => {
   };
 
   const handleWatchTrailerAction = () => {
-    if (isPlayingPreview && previewReady) {
-      if (isPaused) {
-        sendPlayerCommand("playVideo");
-        setIsPaused(false);
-      }
-      if (isMuted) {
-        sendPlayerCommand("unMute");
-        setIsMuted(false);
-      }
-      const banner = document.querySelector(".details-hero-banner");
-      if (banner) banner.scrollIntoView({ behavior: "smooth", block: "start" });
-    } else {
-      setAutoplayBlocked(false);
-      setIsPlayingPreview(true);
-      setIsMuted(false);
-      setIsPaused(false);
-      const banner = document.querySelector(".details-hero-banner");
-      if (banner) banner.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  };
-
-  const checkScrollLimits = () => {
-    if (carouselRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
-      const currentScroll = Math.abs(scrollLeft);
-      const maxScroll = scrollWidth - clientWidth;
-      
-      setAtStart(currentScroll < 15);
-      setAtEnd(currentScroll >= maxScroll - 15);
-    }
-  };
-
-  useEffect(() => {
-    setAtStart(true);
-    setAtEnd(false);
-  }, [id]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      checkScrollLimits();
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [similarMovies]);
-
-  const scroll = (direction) => {
-    if (carouselRef.current) {
-      const clientWidth = carouselRef.current.clientWidth;
-      const scrollAmount = clientWidth * 0.75;
-      const finalAmount = direction === "left" ? -scrollAmount : scrollAmount;
-      
-      carouselRef.current.scrollBy({
-        left: finalAmount,
-        behavior: "smooth"
-      });
+    const trailerSection = document.getElementById("movie-trailer-section");
+    if (trailerSection) {
+      trailerSection.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
@@ -560,13 +543,13 @@ const Movies = () => {
               <div className="details-hero-backdrop-placeholder" />
             )}
 
-            {/* 2. Autoplaying YouTube Preview Trailer Video */}
-            {isPlayingPreview && trailerKey && !autoplayBlocked && (
+            {/* 2. Autoplaying YouTube Preview Video (Prefers Clip, fallback to Teaser only; Trailers excluded) */}
+            {isPlayingPreview && previewKey && !autoplayBlocked && (
               <div className="hero-video-container">
                 <iframe
                   ref={iframeRef}
-                  key={`hero-trailer-${trailerKey}`}
-                  src={`https://www.youtube.com/embed/${trailerKey}?enablejsapi=1&autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&loop=1&playlist=${trailerKey}&playsinline=1&iv_load_policy=3&disablekb=1&fs=0`}
+                  key={`hero-preview-${previewKey}`}
+                  src={`https://www.youtube.com/embed/${previewKey}?enablejsapi=1&autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&fs=0&playsinline=1&loop=1&playlist=${previewKey}&origin=${encodeURIComponent(window.location.origin)}`}
                   title={`${moviesDetails.title || moviesDetails.original_title} Preview`}
                   className={`hero-video-iframe ${previewReady ? "is-visible" : ""}`}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -628,16 +611,16 @@ const Movies = () => {
             )}
 
             {/* 5. Fallback Manual Play Button if Autoplay was Blocked */}
-            {autoplayBlocked && trailerKey && (
+            {autoplayBlocked && previewKey && (
               <div className="hero-fallback-overlay">
                 <button
                   type="button"
                   className="hero-fallback-play-btn"
                   onClick={handleManualPlay}
-                  aria-label={t("playOfficialTrailer") || "Play Trailer"}
+                  aria-label={t("playOfficialTrailer") || "Play Preview"}
                 >
                   <span className="play-triangle">▶</span>
-                  <span>{t("playOfficialTrailer") || "Play Trailer"}</span>
+                  <span>{t("playOfficialTrailer") || "Play Preview"}</span>
                 </button>
               </div>
             )}
@@ -739,24 +722,12 @@ const Movies = () => {
             <div className="action-buttons">
               {trailerKey && (
                 <button
-                  className={`btn-action btn-primary-trailer ${isPlayingPreview && previewReady && !isMuted ? "is-active-playing" : ""}`}
+                  className="btn-action btn-primary-trailer"
                   onClick={handleWatchTrailerAction}
-                  aria-label={
-                    isPlayingPreview && previewReady
-                      ? (isMuted ? (t("unmuteAudio") || "Unmute sound") : (t("watchTrailer")))
-                      : (t("watchTrailer"))
-                  }
+                  aria-label={t("watchTrailer")}
                 >
-                  <span className="btn-icon play-icon">
-                    {isPlayingPreview && previewReady && !isMuted ? "🔊" : "▶"}
-                  </span>
-                  <span className="btn-text">
-                    {isPlayingPreview && previewReady
-                      ? (isMuted
-                          ? (t("unmuteAudio") || (i18n.language === "ar" ? "تشغيل الصوت" : "Unmute sound"))
-                          : (t("watchTrailer")))
-                      : (t("watchTrailer"))}
-                  </span>
+                  <span className="btn-icon play-icon">▶</span>
+                  <span className="btn-text">{t("watchTrailer")}</span>
                 </button>
               )}
 

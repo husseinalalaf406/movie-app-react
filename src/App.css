@@ -7354,27 +7354,31 @@ body:not(.dark-mode) .details-hero-overlay {
   position: absolute;
   top: 0;
   left: 0;
+  right: 0;
+  bottom: 0;
   width: 100%;
   height: 100%;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
+  border-radius: inherit;
+  isolation: isolate;
+  contain: paint;
   z-index: 1;
-  pointer-events: none;
+  pointer-events: none !important;
 }
 
 .hero-video-iframe {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  min-width: 100%;
-  min-height: 100%;
-  transform: translate(-50%, -50%) scale(1.24);
   border: none;
   opacity: 0;
   transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-  pointer-events: none;
+  pointer-events: none !important;
   background: transparent;
+  object-fit: cover;
 }
 
 .hero-video-iframe.is-visible {
@@ -7384,7 +7388,7 @@ body:not(.dark-mode) .details-hero-overlay {
 /* Netflix-style minimalist plain text PREVIEW label */
 .hero-preview-badge {
   position: absolute;
-  top: 24px;
+  top: 20px;
   left: 28px;
   z-index: 5;
   display: inline-flex;
@@ -8318,7 +8322,7 @@ body:not(.dark-mode) .skeleton-btn {
   }
 
   .hero-mute-btn {
-    top: 12px !important;
+    top: 14px !important;
     right: 14px !important;
     width: 38px !important;
     height: 38px !important;
