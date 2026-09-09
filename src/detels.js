@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
@@ -13,7 +13,16 @@ const Movies = () => {
   const [moviesDetails, setMoviesDetails] = useState(null);
   const [cast, setCast] = useState([]);
   const [trailerKey, setTrailerKey] = useState(null);
-  const [iframeLoaded, setIframeLoaded] = useState(false);
+  const [previewKey, setPreviewKey] = useState(null);
+  const [isOfficialTrailerOpen, setIsOfficialTrailerOpen] = useState(false);
+  const [isPlayingPreview, setIsPlayingPreview] = useState(false);
+  const [previewReady, setPreviewReady] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false);
+  const iframeRef = useRef(null);
+  const previewTimerRef = useRef(null);
+  const [bottomTrailerLoaded, setBottomTrailerLoaded] = useState(false);
   const [similarMovies, setSimilarMovies] = useState([]);
   const [similarLoading, setSimilarLoading] = useState(true);
   const [reviews, setReviews] = useState([]);
@@ -49,8 +58,13 @@ const Movies = () => {
     setReviewsLoading(true);
     setReviewsPage(1);
     setExpandedReviews({});
-    setIframeLoaded(false);
+    setIsPlayingPreview(false);
+    setPreviewReady(false);
+    setIsMuted(true);
+    setIsPaused(false);
+    setAutoplayBlocked(false);
     setIsOverviewExpanded(false);
+    setBottomTrailerLoaded(false);
 
     if (!navigator.onLine) {
       setError("offline");
@@ -303,10 +317,156 @@ const Movies = () => {
     }));
   };
 
-  const scrollToTrailer = () => {
-    const element = document.getElementById("movie-trailer-section");
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+  const sendPlayerCommand = useCallback((func, args = []) => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      try {
+        iframeRef.current.contentWindow.postMessage(
+          JSON.stringify({
+            event: "command",
+            func: func,
+            args: args,
+          }),
+          "*"
+        );
+      } catch (err) {
+        console.warn("YouTube player command error:", err);
+      }
+    }
+  }, []);
+
+  // Listen to YouTube player status events
+  useEffect(() => {
+    const handleYouTubeMessage = (event) => {
+      if (!event.origin || !event.origin.includes("youtube.com")) return;
+      try {
+        const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+        if (data && data.event === "onStateChange") {
+          // 1: playing, 2: paused, 0: ended
+          if (data.info === 1) {
+            setPreviewReady(true);
+            setIsPaused(false);
+            setAutoplayBlocked(false);
+          } else if (data.info === 2) {
+            setIsPaused(true);
+          } else if (data.info === 0) {
+            // Trailer ended: replay / loop seamlessly
+            sendPlayerCommand("seekTo", [0, true]);
+            sendPlayerCommand("playVideo");
+          }
+        }
+      } catch (err) {
+        // non-json message
+      }
+    };
+
+    window.addEventListener("message", handleYouTubeMessage);
+    return () => window.removeEventListener("message", handleYouTubeMessage);
+  }, [sendPlayerCommand]);
+
+  // Autoplay after static backdrop is briefly shown
+  useEffect(() => {
+    setIsPlayingPreview(false);
+    setPreviewReady(false);
+    setIsMuted(true);
+    setIsPaused(false);
+    setAutoplayBlocked(false);
+
+    if (previewTimerRef.current) {
+      clearTimeout(previewTimerRef.current);
+    }
+
+    if (trailerKey && !loading) {
+      // Show static backdrop image briefly (1200ms) before starting the muted preview
+      previewTimerRef.current = setTimeout(() => {
+        setIsPlayingPreview(true);
+      }, 1200);
+    }
+
+    return () => {
+      if (previewTimerRef.current) {
+        clearTimeout(previewTimerRef.current);
+      }
+    };
+  }, [id, trailerKey, loading]);
+
+  // Graceful fallback if autoplay is blocked by browser policy or mobile device
+  useEffect(() => {
+    let fallbackTimeout = null;
+    if (isPlayingPreview && !previewReady) {
+      // If after 5 seconds the video has not loaded or started, fallback to static backdrop
+      fallbackTimeout = setTimeout(() => {
+        if (!previewReady) {
+          setAutoplayBlocked(true);
+          setIsPlayingPreview(false);
+        }
+      }, 5000);
+    }
+    return () => {
+      if (fallbackTimeout) clearTimeout(fallbackTimeout);
+    };
+  }, [isPlayingPreview, previewReady]);
+
+  const handleIframeLoaded = () => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      iframeRef.current.contentWindow.postMessage(
+        JSON.stringify({ event: "listening" }),
+        "*"
+      );
+    }
+    sendPlayerCommand("mute");
+    sendPlayerCommand("playVideo");
+    setPreviewReady(true);
+  };
+
+  const toggleMute = (e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    if (isMuted) {
+      sendPlayerCommand("unMute");
+      setIsMuted(false);
+    } else {
+      sendPlayerCommand("mute");
+      setIsMuted(true);
+    }
+  };
+
+  const togglePlayPause = (e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    if (isPaused) {
+      sendPlayerCommand("playVideo");
+      setIsPaused(false);
+    } else {
+      sendPlayerCommand("pauseVideo");
+      setIsPaused(true);
+    }
+  };
+
+  const handleManualPlay = (e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    setAutoplayBlocked(false);
+    setIsPlayingPreview(true);
+    setIsPaused(false);
+    sendPlayerCommand("playVideo");
+  };
+
+  const handleWatchTrailerAction = () => {
+    if (isPlayingPreview && previewReady) {
+      if (isPaused) {
+        sendPlayerCommand("playVideo");
+        setIsPaused(false);
+      }
+      if (isMuted) {
+        sendPlayerCommand("unMute");
+        setIsMuted(false);
+      }
+      const banner = document.querySelector(".details-hero-banner");
+      if (banner) banner.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      setAutoplayBlocked(false);
+      setIsPlayingPreview(true);
+      setIsMuted(false);
+      setIsPaused(false);
+      const banner = document.querySelector(".details-hero-banner");
+      if (banner) banner.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
@@ -382,18 +542,105 @@ const Movies = () => {
   return (
     <div className="details-page animate-on-load">
       {/* Cinematic Backdrop Banner Section */}
-      <div className="details-hero-banner">
+      <div 
+        className={`details-hero-banner ${isPlayingPreview && previewReady ? "is-preview-active" : ""}`}
+        onClick={isPlayingPreview && previewReady ? togglePlayPause : undefined}
+        role={isPlayingPreview && previewReady ? "region" : undefined}
+        aria-label={isPlayingPreview && previewReady ? (t("previewBadge") || "Preview trailer") : undefined}
+      >
         {moviesDetails ? (
           <>
+            {/* 1. Static Backdrop Image (Always present underneath as baseline & fallback) */}
             {moviesDetails.backdrop_path ? (
               <div 
-                className="details-hero-backdrop" 
+                className={`details-hero-backdrop ${isPlayingPreview && previewReady ? "is-dimmed" : ""}`}
                 style={{ backgroundImage: `url(https://image.tmdb.org/t/p/original${moviesDetails.backdrop_path})` }}
               />
             ) : (
               <div className="details-hero-backdrop-placeholder" />
             )}
+
+            {/* 2. Autoplaying YouTube Preview Trailer Video */}
+            {isPlayingPreview && trailerKey && !autoplayBlocked && (
+              <div className="hero-video-container">
+                <iframe
+                  ref={iframeRef}
+                  key={`hero-trailer-${trailerKey}`}
+                  src={`https://www.youtube.com/embed/${trailerKey}?enablejsapi=1&autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&loop=1&playlist=${trailerKey}&playsinline=1&iv_load_policy=3&disablekb=1&fs=0`}
+                  title={`${moviesDetails.title || moviesDetails.original_title} Preview`}
+                  className={`hero-video-iframe ${previewReady ? "is-visible" : ""}`}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  onLoad={handleIframeLoaded}
+                />
+              </div>
+            )}
+
+            {/* 3. Dark & Vignette Gradient Overlay (Guarantees high contrast for title & overview) */}
             <div className="details-hero-overlay" />
+
+            {/* 4. Active Preview Controls (PREVIEW label, Mute/Unmute toggle, Play/Pause toggle) */}
+            {isPlayingPreview && previewReady && !autoplayBlocked && (
+              <>
+                {/* Netflix-style minimalist plain text PREVIEW label */}
+                <div className="hero-preview-badge" aria-hidden="true">
+                  <span className="hero-preview-dot" />
+                  <span className="hero-preview-text">{t("previewBadge") || "PREVIEW"}</span>
+                </div>
+
+                {/* Mute/Unmute speaker icon button */}
+                <button
+                  type="button"
+                  className={`hero-mute-btn ${isMuted ? "is-muted" : "is-unmuted"}`}
+                  onClick={toggleMute}
+                  aria-label={isMuted ? (t("unmuteAudio") || "Unmute sound") : (t("muteAudio") || "Mute sound")}
+                  title={isMuted ? (t("unmuteAudio") || "Unmute sound") : (t("muteAudio") || "Mute sound")}
+                >
+                  {isMuted ? (
+                    <svg className="hero-ctrl-icon" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z" />
+                    </svg>
+                  ) : (
+                    <svg className="hero-ctrl-icon" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+                    </svg>
+                  )}
+                </button>
+
+                {/* Center Play/Pause overlay */}
+                <button
+                  type="button"
+                  className={`hero-center-playpause-btn ${isPaused ? "is-paused" : "is-playing"}`}
+                  onClick={togglePlayPause}
+                  aria-label={isPaused ? (t("playPreview") || "Play preview") : (t("pausePreview") || "Pause preview")}
+                  title={isPaused ? (t("playPreview") || "Play preview") : (t("pausePreview") || "Pause preview")}
+                >
+                  {isPaused ? (
+                    <svg className="center-ctrl-icon play" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M8 5.14v13.72a1 1 0 001.55.83l11-6.86a1 1 0 000-1.66l-11-6.86A1 1 0 008 5.14z" />
+                    </svg>
+                  ) : (
+                    <svg className="center-ctrl-icon pause" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                    </svg>
+                  )}
+                </button>
+              </>
+            )}
+
+            {/* 5. Fallback Manual Play Button if Autoplay was Blocked */}
+            {autoplayBlocked && trailerKey && (
+              <div className="hero-fallback-overlay">
+                <button
+                  type="button"
+                  className="hero-fallback-play-btn"
+                  onClick={handleManualPlay}
+                  aria-label={t("playOfficialTrailer") || "Play Trailer"}
+                >
+                  <span className="play-triangle">▶</span>
+                  <span>{t("playOfficialTrailer") || "Play Trailer"}</span>
+                </button>
+              </div>
+            )}
           </>
         ) : (
           <div className="details-hero-skeleton">
@@ -492,11 +739,24 @@ const Movies = () => {
             <div className="action-buttons">
               {trailerKey && (
                 <button
-                  className="btn-action btn-primary-trailer"
-                  onClick={scrollToTrailer}
+                  className={`btn-action btn-primary-trailer ${isPlayingPreview && previewReady && !isMuted ? "is-active-playing" : ""}`}
+                  onClick={handleWatchTrailerAction}
+                  aria-label={
+                    isPlayingPreview && previewReady
+                      ? (isMuted ? (t("unmuteAudio") || "Unmute sound") : (t("watchTrailer")))
+                      : (t("watchTrailer"))
+                  }
                 >
-                  <span className="btn-icon play-icon">▶</span>
-                  <span className="btn-text">{t("watchTrailer")}</span>
+                  <span className="btn-icon play-icon">
+                    {isPlayingPreview && previewReady && !isMuted ? "🔊" : "▶"}
+                  </span>
+                  <span className="btn-text">
+                    {isPlayingPreview && previewReady
+                      ? (isMuted
+                          ? (t("unmuteAudio") || (i18n.language === "ar" ? "تشغيل الصوت" : "Unmute sound"))
+                          : (t("watchTrailer")))
+                      : (t("watchTrailer"))}
+                  </span>
                 </button>
               )}
 
@@ -740,7 +1000,7 @@ const Movies = () => {
           </div>
         ) : trailerKey ? (
           <div className="responsive-trailer-wrapper">
-            {!iframeLoaded && (
+            {!bottomTrailerLoaded && (
               <div className="trailer-skeleton-container absolute-loader skeleton-pulsing">
                 <div className="trailer-skeleton-play-btn" />
               </div>
@@ -750,7 +1010,7 @@ const Movies = () => {
               title="YouTube video player"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
-              onLoad={() => setIframeLoaded(true)}
+              onLoad={() => setBottomTrailerLoaded(true)}
             ></iframe>
           </div>
         ) : (
