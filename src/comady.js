@@ -12,7 +12,7 @@ const ComedyMovies = () => {
     const apiLang = i18n.language === 'ar' ? 'ar' : 'en-US';
     setError(null);
     fetch(
-      `https://api.themoviedb.org/3/discover/movie?api_key=${process.env.REACT_APP_TMDB_API_KEY}&with_genres=35&language=${apiLang}&page=1`
+      `/api/tmdb/discover/movie?with_genres=35&language=${apiLang}&page=1`
     )
       .then((res) => {
         if (!res.ok) {

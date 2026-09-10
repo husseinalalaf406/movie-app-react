@@ -11,7 +11,6 @@ const Interests = () => {
   const [retryCount, setRetryCount] = useState(0);
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
-  const API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 
   const genres = [
     { id: "28", name: isRtl ? "أكشن" : "Action", emoji: "⚔️", color: "rgba(239, 68, 68, 0.08)", border: "rgba(239, 68, 68, 0.4)" },
@@ -26,7 +25,7 @@ const Interests = () => {
     setLoading(true);
     setError(null);
     const apiLang = i18n.language === 'ar' ? 'ar' : 'en-US';
-    const url = `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&with_genres=${genreId}&sort_by=popularity.desc&language=${apiLang}&page=1`;
+    const url = `/api/tmdb/discover/movie?with_genres=${genreId}&sort_by=popularity.desc&language=${apiLang}&page=1`;
     fetch(url)
       .then((res) => {
         if (!res.ok) {

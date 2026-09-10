@@ -124,7 +124,7 @@ function App() {
     if (searchText) {
       setSearchLoading(true);
       const apiLang = i18n.language === 'ar' ? 'ar' : 'en-US';
-      fetch(`https://api.themoviedb.org/3/search/movie?api_key=${process.env.REACT_APP_TMDB_API_KEY}&query=${encodeURIComponent(searchText)}&language=${apiLang}`)
+      fetch(`/api/tmdb/search/movie?query=${encodeURIComponent(searchText)}&language=${apiLang}`)
         .then(Response => Response.json())
         .then((data) => {
           setSearchResults(data.results || []);
