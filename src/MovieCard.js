@@ -65,7 +65,7 @@ export default function MovieCard({ item, onClick }) {
 
       // 1. Try fetching movie videos first
       const movieRes = await fetch(
-        `https://api.themoviedb.org/3/movie/${id}/videos?api_key=${process.env.REACT_APP_TMDB_API_KEY}&language=${apiLang}`
+        `/api/tmdb/movie/${id}/videos?language=${apiLang}`
       );
       if (movieRes.ok) {
         const data = await movieRes.json();
@@ -80,7 +80,7 @@ export default function MovieCard({ item, onClick }) {
       // 2. If no movie trailer in Arabic, fallback to English movie videos
       if (!foundTrailerKey && apiLang !== "en-US") {
         const enMovieRes = await fetch(
-          `https://api.themoviedb.org/3/movie/${id}/videos?api_key=${process.env.REACT_APP_TMDB_API_KEY}&language=en-US`
+          `/api/tmdb/movie/${id}/videos?language=en-US`
         );
         if (enMovieRes.ok) {
           const enData = await enMovieRes.json();
@@ -96,7 +96,7 @@ export default function MovieCard({ item, onClick }) {
       // 3. If no movie trailer, try fetching TV videos
       if (!foundTrailerKey) {
         const tvRes = await fetch(
-          `https://api.themoviedb.org/3/tv/${id}/videos?api_key=${process.env.REACT_APP_TMDB_API_KEY}&language=${apiLang}`
+          `/api/tmdb/tv/${id}/videos?language=${apiLang}`
         );
         if (tvRes.ok) {
           const data = await tvRes.json();
@@ -112,7 +112,7 @@ export default function MovieCard({ item, onClick }) {
       // 4. Fallback for TV videos in English
       if (!foundTrailerKey && apiLang !== "en-US") {
         const enTvRes = await fetch(
-          `https://api.themoviedb.org/3/tv/${id}/videos?api_key=${process.env.REACT_APP_TMDB_API_KEY}&language=en-US`
+          `/api/tmdb/tv/${id}/videos?language=en-US`
         );
         if (enTvRes.ok) {
           const data = await enTvRes.json();

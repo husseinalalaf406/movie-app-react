@@ -102,7 +102,7 @@ const Movies = () => {
     }
     
     // Fetch details with Arabic primary and English fallback for missing overview/backdrop/title
-    fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${process.env.REACT_APP_TMDB_API_KEY}&language=${apiLang}`)
+    fetch(`/api/tmdb/movie/${id}?language=${apiLang}`)
       .then(async (res) => {
         if (!res.ok) {
           if (res.status === 404) {
@@ -128,7 +128,7 @@ const Movies = () => {
           if (needsOverview || needsBackdrop || needsTitle) {
             try {
               const fallbackRes = await fetch(
-                `https://api.themoviedb.org/3/movie/${id}?api_key=${process.env.REACT_APP_TMDB_API_KEY}&language=en-US`
+                `/api/tmdb/movie/${id}?language=en-US`
               );
               if (fallbackRes.ok) {
                 const enData = await fallbackRes.json();
@@ -173,7 +173,7 @@ const Movies = () => {
       .finally(() => setLoading(false));
 
     // Fetch credits (cast)
-    fetch(`https://api.themoviedb.org/3/movie/${id}/credits?api_key=${process.env.REACT_APP_TMDB_API_KEY}&language=${apiLang}`)
+    fetch(`/api/tmdb/movie/${id}/credits?language=${apiLang}`)
       .then((res) => {
         if (res.ok) return res.json();
         return null;
@@ -193,7 +193,7 @@ const Movies = () => {
 
         // 1. Try active language first (e.g. 'ar' or 'en-US')
         const primaryRes = await fetch(
-          `https://api.themoviedb.org/3/movie/${id}/videos?api_key=${process.env.REACT_APP_TMDB_API_KEY}&language=${apiLang}`
+          `/api/tmdb/movie/${id}/videos?language=${apiLang}`
         );
         if (primaryRes.ok) {
           const primaryData = await primaryRes.json();
@@ -206,7 +206,7 @@ const Movies = () => {
         if (allVideos.length === 0 || apiLang !== "en-US") {
           try {
             const enRes = await fetch(
-              `https://api.themoviedb.org/3/movie/${id}/videos?api_key=${process.env.REACT_APP_TMDB_API_KEY}&language=en-US`
+              `/api/tmdb/movie/${id}/videos?language=en-US`
             );
             if (enRes.ok) {
               const enData = await enRes.json();
@@ -229,7 +229,7 @@ const Movies = () => {
         if (allVideos.length === 0) {
           try {
             const globalRes = await fetch(
-              `https://api.themoviedb.org/3/movie/${id}/videos?api_key=${process.env.REACT_APP_TMDB_API_KEY}`
+              `/api/tmdb/movie/${id}/videos`
             );
             if (globalRes.ok) {
               const globalData = await globalRes.json();
@@ -285,7 +285,7 @@ const Movies = () => {
     fetchVideos();
 
     // Fetch similar movies
-    fetch(`https://api.themoviedb.org/3/movie/${id}/similar?api_key=${process.env.REACT_APP_TMDB_API_KEY}&language=${apiLang}`)
+    fetch(`/api/tmdb/movie/${id}/similar?language=${apiLang}`)
       .then((res) => {
         if (res.ok) return res.json();
         return null;
@@ -305,7 +305,7 @@ const Movies = () => {
       .finally(() => setSimilarLoading(false));
 
     // Fetch reviews (no language restriction, fallback to standard or English is natural)
-    fetch(`https://api.themoviedb.org/3/movie/${id}/reviews?api_key=${process.env.REACT_APP_TMDB_API_KEY}`)
+    fetch(`/api/tmdb/movie/${id}/reviews`)
       .then((res) => {
         if (res.ok) return res.json();
         return null;

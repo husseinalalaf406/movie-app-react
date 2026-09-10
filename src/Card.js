@@ -146,14 +146,13 @@ const Section = ({ title, url }) => {
 };
 
 const MoviesPage = () => {
-  const API_KEY = process.env.REACT_APP_TMDB_API_KEY;
   const [recommendations, setRecommendations] = useState([]);
   const { t } = useTranslation();
 
   useEffect(() => {
     const savedGenre = localStorage.getItem('preferred_genre');
     if (savedGenre) {
-      const url = `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&with_genres=${savedGenre}&sort_by=popularity.desc&language=en-US&page=1`;
+      const url = `/api/tmdb/discover/movie?with_genres=${savedGenre}&sort_by=popularity.desc&language=en-US&page=1`;
       fetch(url)
         .then((res) => res.json())
         .then((data) => {
@@ -170,20 +169,20 @@ const MoviesPage = () => {
       {localStorage.getItem('preferred_genre') && (
         <Section
           title={t("basedOnInterests")}
-          url={`https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&with_genres=${localStorage.getItem('preferred_genre')}&sort_by=popularity.desc&page=1`}
+          url={`/api/tmdb/discover/movie?with_genres=${localStorage.getItem('preferred_genre')}&sort_by=popularity.desc&page=1`}
         />
       )}
       <Section
         title={t("popularTvShows")}
-        url={`https://api.themoviedb.org/3/tv/popular?api_key=${API_KEY}&page=1`}
+        url={`/api/tmdb/tv/popular?page=1`}
       />
       <Section
         title={t("kidsFamily")}
-        url={`https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&with_genres=16,10751&page=1`}
+        url={`/api/tmdb/discover/movie?with_genres=16,10751&page=1`}
       />
       <Section
         title={t("topRatedMovies")}
-        url={`https://api.themoviedb.org/3/movie/top_rated?api_key=${API_KEY}&page=1`}
+        url={`/api/tmdb/movie/top_rated?page=1`}
       />
     </div>
   );

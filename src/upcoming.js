@@ -12,7 +12,7 @@ const UpcomingMovies = () => {
     const apiLang = i18n.language === 'ar' ? 'ar' : 'en-US';
     setError(null);
     fetch(
-      `https://api.themoviedb.org/3/movie/upcoming?api_key=${process.env.REACT_APP_TMDB_API_KEY}&language=${apiLang}&page=1`
+      `/api/tmdb/movie/upcoming?language=${apiLang}&page=1`
     )
       .then((res) => {
         if (!res.ok) {
