@@ -12,7 +12,7 @@ const Tv = () => {
     const apiLang = i18n.language === 'ar' ? 'ar' : 'en-US';
     setError(null);
     fetch(
-      `/api/tmdb/trending/tv/week?language=${apiLang}`
+      `/.netlify/functions/tmdb?path=${encodeURIComponent(`/trending/tv/week?language=${apiLang}`)}`
     )
       .then((res) => {
         if (!res.ok) {

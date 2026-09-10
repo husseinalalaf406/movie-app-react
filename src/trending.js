@@ -12,7 +12,7 @@ const TrendingMovies = () => {
     const apiLang = i18n.language === 'ar' ? 'ar' : 'en-US';
     setError(null);
     fetch(
-      `/api/tmdb/trending/movie/week?language=${apiLang}`
+      `/.netlify/functions/tmdb?path=${encodeURIComponent(`/trending/movie/week?language=${apiLang}`)}`
     )
       .then((res) => {
         if (!res.ok) {

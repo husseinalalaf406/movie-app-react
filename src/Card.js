@@ -22,6 +22,7 @@ const Section = ({ title, url }) => {
     fetch(urlWithLang)
       .then((res) => res.json())
       .then((data) => {
+        if (!data || !data.results) return;
         const results = data.results.map((m) => ({
           image: m.poster_path
             ? `https://image.tmdb.org/t/p/w500${m.poster_path}`
@@ -146,43 +147,27 @@ const Section = ({ title, url }) => {
 };
 
 const MoviesPage = () => {
-  const [recommendations, setRecommendations] = useState([]);
   const { t } = useTranslation();
-
-  useEffect(() => {
-    const savedGenre = localStorage.getItem('preferred_genre');
-    if (savedGenre) {
-      const url = `/api/tmdb/discover/movie?with_genres=${savedGenre}&sort_by=popularity.desc&language=en-US&page=1`;
-      fetch(url)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.results) {
-            setRecommendations(data.results.slice(0, 4));
-          }
-        })
-        .catch(console.error);
-    }
-  }, []);
 
   return (
     <div className="movies-page">
       {localStorage.getItem('preferred_genre') && (
         <Section
           title={t("basedOnInterests")}
-          url={`/api/tmdb/discover/movie?with_genres=${localStorage.getItem('preferred_genre')}&sort_by=popularity.desc&page=1`}
+          url={`/.netlify/functions/tmdb?path=${encodeURIComponent(`/discover/movie?with_genres=${localStorage.getItem('preferred_genre')}&sort_by=popularity.desc&page=1`)}`}
         />
       )}
       <Section
         title={t("popularTvShows")}
-        url={`/api/tmdb/tv/popular?page=1`}
+        url={`/.netlify/functions/tmdb?path=${encodeURIComponent(`/tv/popular?page=1`)}`}
       />
       <Section
         title={t("kidsFamily")}
-        url={`/api/tmdb/discover/movie?with_genres=16,10751&page=1`}
+        url={`/.netlify/functions/tmdb?path=${encodeURIComponent(`/discover/movie?with_genres=16,10751&page=1`)}`}
       />
       <Section
         title={t("topRatedMovies")}
-        url={`/api/tmdb/movie/top_rated?page=1`}
+        url={`/.netlify/functions/tmdb?path=${encodeURIComponent(`/movie/top_rated?page=1`)}`}
       />
     </div>
   );

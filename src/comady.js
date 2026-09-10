@@ -12,7 +12,7 @@ const ComedyMovies = () => {
     const apiLang = i18n.language === 'ar' ? 'ar' : 'en-US';
     setError(null);
     fetch(
-      `/api/tmdb/discover/movie?with_genres=35&language=${apiLang}&page=1`
+      `/.netlify/functions/tmdb?path=${encodeURIComponent(`/discover/movie?with_genres=35&language=${apiLang}&page=1`)}`
     )
       .then((res) => {
         if (!res.ok) {

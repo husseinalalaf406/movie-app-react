@@ -200,7 +200,7 @@ export default function Hero({
     const isArabic = i18n.language === 'ar';
     const apiLang = isArabic ? 'ar' : 'en-US';
     setIsHeroLoading(true);
-    fetch(`/api/tmdb/trending/movie/week?language=${apiLang}`)
+    fetch(`/.netlify/functions/tmdb?path=${encodeURIComponent(`/trending/movie/week?language=${apiLang}`)}`)
       .then(async (res) => {
         if (!res.ok) throw new Error("TMDB response not ok");
         return res.json();
@@ -217,7 +217,7 @@ export default function Hero({
           if (isArabic && (!movieOverview || movieOverview.trim() === "" || !movieTitle)) {
             try {
               const fallbackRes = await fetch(
-                `/api/tmdb/movie/${first.id}?language=en-US`
+                `/.netlify/functions/tmdb?path=${encodeURIComponent(`/movie/${first.id}?language=en-US`)}`
               );
               if (fallbackRes.ok) {
                 const enData = await fallbackRes.json();

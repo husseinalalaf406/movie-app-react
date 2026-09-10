@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import Section from "./show";
 import "./App.css";
@@ -9,7 +9,7 @@ const Interests = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
 
   const genres = [
@@ -21,11 +21,11 @@ const Interests = () => {
     { id: "9648", name: isRtl ? "غموض" : "Mystery", emoji: "🔍", color: "rgba(14, 165, 233, 0.08)", border: "rgba(14, 165, 233, 0.4)" },
   ];
 
-  const fetchMoviesByGenre = (genreId) => {
+  const fetchMoviesByGenre = useCallback((genreId) => {
     setLoading(true);
     setError(null);
     const apiLang = i18n.language === 'ar' ? 'ar' : 'en-US';
-    const url = `/api/tmdb/discover/movie?with_genres=${genreId}&sort_by=popularity.desc&language=${apiLang}&page=1`;
+    const url = `/.netlify/functions/tmdb?path=${encodeURIComponent(`/discover/movie?with_genres=${genreId}&sort_by=popularity.desc&language=${apiLang}&page=1`)}`;
     fetch(url)
       .then((res) => {
         if (!res.ok) {
@@ -56,13 +56,13 @@ const Interests = () => {
         }
       })
       .finally(() => setLoading(false));
-  };
+  }, [i18n.language]);
 
   useEffect(() => {
     if (selectedGenre) {
       fetchMoviesByGenre(selectedGenre);
     }
-  }, [selectedGenre, i18n.language, retryCount]);
+  }, [selectedGenre, retryCount, fetchMoviesByGenre]);
 
   const handleSelectGenre = (genreId) => {
     localStorage.setItem('preferred_genre', genreId);

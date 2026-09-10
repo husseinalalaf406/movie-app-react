@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import "./App.css";
 
 const ErrorDisplay = ({ type = "404", message, onRetry, title }) => {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const navigate = useNavigate();
   const isRtl = i18n.language === "ar";
 

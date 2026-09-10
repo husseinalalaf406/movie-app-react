@@ -12,7 +12,7 @@ const NowPlayingMovies = () => {
     const apiLang = i18n.language === 'ar' ? 'ar' : 'en-US';
     setError(null);
     fetch(
-      `/api/tmdb/movie/now_playing?language=${apiLang}&page=1`
+      `/.netlify/functions/tmdb?path=${encodeURIComponent(`/movie/now_playing?language=${apiLang}&page=1`)}`
     )
       .then((res) => {
         if (!res.ok) {

@@ -124,7 +124,7 @@ function App() {
     if (searchText) {
       setSearchLoading(true);
       const apiLang = i18n.language === 'ar' ? 'ar' : 'en-US';
-      fetch(`/api/tmdb/search/movie?query=${encodeURIComponent(searchText)}&language=${apiLang}`)
+      fetch(`/.netlify/functions/tmdb?path=${encodeURIComponent(`/search/movie?query=${encodeURIComponent(searchText)}&language=${apiLang}`)}`)
         .then(Response => Response.json())
         .then((data) => {
           setSearchResults(data.results || []);

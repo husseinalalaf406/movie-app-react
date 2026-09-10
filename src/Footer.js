@@ -5,7 +5,6 @@ import "./App.css";
 
 const Footer = () => {
   const { t, i18n } = useTranslation();
-  const isRtl = i18n.language === "ar";
   const currentLang = i18n.language === "ar" ? "ar" : "en";
 
   // Local translations for Footer specific texts
